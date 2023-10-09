@@ -1,5 +1,5 @@
 (* Termes *)
-type pterm = Var of string | App of pterm * pterm | Abs of string * pterm | N of int | Add of pterm * pterm 
+type pterm = Var of string | App of pterm * pterm | Abs of string * pterm | N of int | Add of pterm * pterm | Sub of pterm * pterm
 (* Types *) 
 type ptype = Var of string | Arr of ptype * ptype | Nat 
 (* Environnements de typage *) 
@@ -14,6 +14,9 @@ let rec print_term (t : pterm) : string =
     | Abs (x, t) -> "(fun "^ x ^" -> " ^ (print_term t) ^")" 
     | N n -> string_of_int n
     | Add (t1, t2) -> "(" ^ (print_term t1) ^" + "^ (print_term t2) ^ ")"
+    | Sub (t1, t2) -> "(" ^ (print_term t1) ^" - "^ (print_term t2) ^ ")"
+
+    
 (* pretty printer de types*)                    
 let rec print_type (t : ptype) : string =
   match t with
@@ -69,6 +72,9 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
       (ty, Arr (Var nv1, Var nv2))::(genere_equa t (Var nv2) ((x, Var nv1)::e))  
   | N _ -> [(ty, Nat)]
   | Add (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
+      let eq2 : equa = genere_equa t2 Nat e in
+      (ty, Nat)::(eq1 @ eq2)
+  | Sub (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
       let eq2 : equa = genere_equa t2 Nat e in
       (ty, Nat)::(eq1 @ eq2)
       
@@ -144,7 +150,10 @@ let ex_omega : pterm = App (Abs ("x", App (Var "x", Var "x")), Abs ("y", App (Va
 let inf_ex_omega : string = inference ex_omega
 let ex_nat3 : pterm = App (ex_nat2, ex_id)
 let inf_ex_nat3 : string = inference ex_nat3
-
+let ex_deux : pterm = N 2
+let ex_un : pterm = N 1
+let ex_addition : pterm = Add (ex_un, ex_deux)
+let ex_substract : pterm = Sub (ex_un, ex_deux)
 
 let main () =
  print_endline "======================";
@@ -160,6 +169,6 @@ let main () =
  print_endline "======================";
  print_endline inf_ex_nat2;
  print_endline "======================";
- print_endline inf_ex_nat3
+ print_endline (print_term ex_substract)
 
 let _ = main ()
