@@ -1,4 +1,5 @@
 (executable
  (public_name typeur_evaluateur)
  (name main)
- (libraries typeur_evaluateur))
+ (libraries typeur_evaluateur)
+ (flags (-w -3)))
