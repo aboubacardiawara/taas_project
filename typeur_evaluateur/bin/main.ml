@@ -196,6 +196,8 @@ let ex_addition : pterm = Add (ex_un, ex_deux)
 let ex_substract : pterm = Sub (ex_un, ex_deux)
 let ex_list_vide : pterm = PList Empty
 let ex_list : pterm = PList (Cons (ex_un, Cons (ex_deux, Cons (ex_deux, Empty))))
+let inf_ex_vide : string = inference ex_list_vide
+let inf_ex_list : string = inference ex_list
 
 let main () =
  print_endline "======================";
@@ -210,9 +212,13 @@ let main () =
  print_endline inf_ex_nat1;
  print_endline "======================";
  print_endline inf_ex_nat2;
- print_endline "======================";
+ print_endline "=========empty liste==========";
  print_endline (print_term ex_list_vide);
- print_endline "==========liste=========";
- print_endline (print_term ex_list)
+ print_endline "==========liste [1, 2, 2]=========";
+ print_endline (print_term ex_list);
+ print_endline "========== empty liste type=========";
+ print_endline inf_ex_vide;
+ print_endline "==========liste [1, 2, 2] type=========";
+ print_endline inf_ex_list
 
 let _ = main ()
