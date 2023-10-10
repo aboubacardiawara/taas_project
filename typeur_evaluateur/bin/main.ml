@@ -215,11 +215,6 @@ let inf_ex_list_abs : string = inference ex_list_abs
 let ex_concat_123: pterm plist = Cons (ex_un, Cons (ex_deux, Cons (ex_trois, Empty)))
 
 
-(* TYPABLE** avec le type (T47 -> (T50 -> [(Nat -> Nat)])) *)
-let ex_listP : pterm = Abs("x", ListP [ex_sous; ex_sous])
-let ex_listP_string  : string = inference  ex_listP
-let ex_hd : pterm =  Abs ("x", Hd ex_listP)
-
 
 let main () =
  print_endline "======================";
