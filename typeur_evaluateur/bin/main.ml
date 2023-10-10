@@ -10,7 +10,7 @@ type pterm =
   | N of int 
   | Add of pterm * pterm 
   | Sub of pterm * pterm
-  | PList of pterm plist
+  | PL of pterm plist
 
 
   (* Types *) 
@@ -18,7 +18,7 @@ type ptype =
   | Var of string 
   | Arr of ptype * ptype 
   | Nat
-  | PList of ptype plist
+  | PList of ptype
 
 
 
@@ -47,7 +47,7 @@ let rec print_term (t : pterm) : string =
     | N n -> string_of_int n
     | Add (t1, t2) -> "(" ^ (print_term t1) ^" + "^ (print_term t2) ^ ")"
     | Sub (t1, t2) -> "(" ^ (print_term t1) ^" - "^ (print_term t2) ^ ")"
-    | PList l -> "[" ^ print_list l ^ "]"
+    | PL l -> "[" ^ print_list l ^ "]"
     and print_list (l : pterm plist) : string =
       match l with
         Empty -> ""
@@ -60,9 +60,7 @@ let rec print_type (t : ptype) : string =
     Var x -> x
   | Arr (t1, t2) -> "(" ^ (print_type t1) ^" -> "^ (print_type t2) ^")"
   | Nat -> "Nat" 
-  | PList l -> match l with
-    Empty -> "[]"
-    | Cons (t, _) -> "[" ^ (print_type t) ^ "]"
+  | PList l -> (print_type l) ^ " PList"
 
 (* générateur de noms frais de variables de types *)
 let compteur_var : int ref = ref 0                    
@@ -94,6 +92,7 @@ let rec substitue_type (t : ptype) (v : string) (t0 : ptype) : ptype =
   | Var v2 -> Var v2
   | Arr (t1, t2) -> Arr (substitue_type t1 v t0, substitue_type t2 v t0) 
   | Nat -> Nat 
+  | PList t -> PList (substitue_type t v t0)
 
 (* remplace une variable par un type dans une liste d'équations*)
 let substitue_type_partout (e : equa) (v : string) (t0 : ptype) : equa =
@@ -117,6 +116,11 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
   | Sub (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
       let eq2 : equa = genere_equa t2 Nat e in
       (ty, Nat)::(eq1 @ eq2)
+  | PL l -> match l with
+      Empty -> [(ty, PList (Var (nouvelle_var ())))]
+      | Cons (t, _) -> let nv = Var (nouvelle_var ()) in 
+        (ty, PList nv) :: (genere_equa t (nv) e)
+
       
 exception Echec_unif of string      
 
@@ -140,7 +144,7 @@ let rec trouve_but (e : equa_zip) (but : string) =
     (_, []) -> raise VarPasTrouve
   | (_, (Var v, t)::_) when v = but -> t
   | (_, (t, Var v)::_) when v = but -> t 
-  | (e1, c::e2) -> trouve_but (c::e1, e2) but 
+  | (e1, c::e2) -> trouve_but (c::e1, e2) but
                     
 (* résout un système d'équations *) 
 let rec unification (e : equa_zip) (but : string) : ptype = 
@@ -166,7 +170,9 @@ let rec unification (e : equa_zip) (but : string) : ptype =
     (* types nat à gauche pas à droite : échec *)
   | (e1, (Nat, t3)::e2) -> raise (Echec_unif ("type entier non-unifiable avec "^(print_type t3)))     
     (* types à droite pas à gauche : échec *)
-  | (e1, (t3, Nat)::e2) -> raise (Echec_unif ("type entier non-unifiable avec "^(print_type t3)))     
+  | (e1, (t3, Nat)::e2) -> raise (Echec_unif ("type entier non-unifiable avec "^(print_type t3)))
+    (*deux listes, *)
+  | (e1, (PList t1, PList t2)::e2) -> raise (Echec_unif ("Not implemened yet"))
                                       
 (* enchaine generation d'equation et unification *)                                   
 let inference (t : pterm) : string =
@@ -194,10 +200,12 @@ let ex_deux : pterm = N 2
 let ex_un : pterm = N 1
 let ex_addition : pterm = Add (ex_un, ex_deux)
 let ex_substract : pterm = Sub (ex_un, ex_deux)
-let ex_list_vide : pterm = PList Empty
-let ex_list : pterm = PList (Cons (ex_un, Cons (ex_deux, Cons (ex_deux, Empty))))
+let ex_list_vide : pterm = PL Empty
+let ex_list_entiers : pterm = PL (Cons (ex_un, Cons (ex_deux, Cons (ex_deux, Empty))))
+let ex_list_abs : pterm = PL (Cons (ex_id, Empty))
 let inf_ex_vide : string = inference ex_list_vide
-let inf_ex_list : string = inference ex_list
+let inf_ex_list_entiers : string = inference ex_list_entiers
+let inf_ex_list_abs : string = inference ex_list_abs
 
 let main () =
  print_endline "======================";
@@ -215,10 +223,13 @@ let main () =
  print_endline "=========empty liste==========";
  print_endline (print_term ex_list_vide);
  print_endline "==========liste [1, 2, 2]=========";
- print_endline (print_term ex_list);
- print_endline "========== empty liste type=========";
+ print_endline (print_term ex_list_entiers);
+ print_endline "========== empty liste type =========";
  print_endline inf_ex_vide;
- print_endline "==========liste [1, 2, 2] type=========";
- print_endline inf_ex_list
+ print_endline "==========liste [1, 2, 2] type =========";
+ print_endline inf_ex_list_entiers;
+ print_endline "==========liste [abstractions...] type =========";
+ print_endline inf_ex_list_abs
+
 
 let _ = main ()
