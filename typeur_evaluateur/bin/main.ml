@@ -1,12 +1,44 @@
+(*PList*)
+type 'a plist = Empty | Cons of 'a * 'a plist
+
+
 (* Termes *)
-type pterm = Var of string | App of pterm * pterm | Abs of string * pterm | N of int | Add of pterm * pterm | Sub of pterm * pterm
-(* Types *) 
-type ptype = Var of string | Arr of ptype * ptype | Nat 
-(* Environnements de typage *) 
-type env = (string * ptype) list 
+type pterm = 
+  | Var of string 
+  | App of pterm * pterm 
+  | Abs of string * pterm 
+  | N of int 
+  | Add of pterm * pterm 
+  | Sub of pterm * pterm
+  | PList of pterm plist
+
+
+  (* Types *) 
+type ptype = 
+  | Var of string 
+  | Arr of ptype * ptype 
+  | Nat
+  | PList of ptype plist
+
+
+
+(*Primitives sur les listes*)
+let head (l : 'a plist) : 'a =
+  match l with
+    Empty -> failwith "head"
+  | Cons (x, _) -> x
+
+let tail (l : 'a plist) : 'a plist =
+  match l with
+    Empty -> failwith "tail"
+  | Cons (_, l) -> l
+
+  (* Environnements de typage *) 
+type env = (string * ptype) list
 (* Listes d'équations *) 
 type equa = (ptype * ptype) list
-(* pretty printer de termes*)     
+(* pretty printer de termes*)
+
 let rec print_term (t : pterm) : string =
   match t with
     Var x -> x
@@ -15,14 +47,22 @@ let rec print_term (t : pterm) : string =
     | N n -> string_of_int n
     | Add (t1, t2) -> "(" ^ (print_term t1) ^" + "^ (print_term t2) ^ ")"
     | Sub (t1, t2) -> "(" ^ (print_term t1) ^" - "^ (print_term t2) ^ ")"
-
-    
-(* pretty printer de types*)                    
+    | PList l -> "[" ^ print_list l ^ "]"
+    and print_list (l : pterm plist) : string =
+      match l with
+        Empty -> ""
+        | Cons (t, Empty) -> print_term t
+        | Cons (t, l) -> (print_term t) ^ "; " ^ (print_list l)
+        
+(* pretty printer de types*)
 let rec print_type (t : ptype) : string =
   match t with
     Var x -> x
   | Arr (t1, t2) -> "(" ^ (print_type t1) ^" -> "^ (print_type t2) ^")"
   | Nat -> "Nat" 
+  | PList l -> match l with
+    Empty -> "[]"
+    | Cons (t, _) -> "[" ^ (print_type t) ^ "]"
 
 (* générateur de noms frais de variables de types *)
 let compteur_var : int ref = ref 0                    
@@ -154,6 +194,8 @@ let ex_deux : pterm = N 2
 let ex_un : pterm = N 1
 let ex_addition : pterm = Add (ex_un, ex_deux)
 let ex_substract : pterm = Sub (ex_un, ex_deux)
+let ex_list_vide : pterm = PList Empty
+let ex_list : pterm = PList (Cons (ex_un, Cons (ex_deux, Cons (ex_deux, Empty))))
 
 let main () =
  print_endline "======================";
@@ -169,6 +211,8 @@ let main () =
  print_endline "======================";
  print_endline inf_ex_nat2;
  print_endline "======================";
- print_endline (print_term ex_substract)
+ print_endline (print_term ex_list_vide);
+ print_endline "==========liste=========";
+ print_endline (print_term ex_list)
 
 let _ = main ()
