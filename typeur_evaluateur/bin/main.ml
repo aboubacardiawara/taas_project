@@ -177,7 +177,7 @@ let rec unification (e : equa_zip) (but : string) : ptype =
     (* types à droite pas à gauche : échec *)
   | (e1, (t3, Nat)::e2) -> raise (Echec_unif ("type entier non-unifiable avec "^(print_type t3)))
     (*deux listes, *)
-  | (e1, (PList t1, PList t2)::e2) -> raise (Echec_unif ("Not implemened yet"))
+  | (e1, (PList t1, PList t2)::e2) -> unification (e1, (t1, t2)::e2) but
                                       
 (* enchaine generation d'equation et unification *)                                   
 let inference (t : pterm) : string =
