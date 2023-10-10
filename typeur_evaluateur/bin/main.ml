@@ -33,7 +33,12 @@ let tail (l : 'a plist) : 'a plist =
     Empty -> failwith "tail"
   | Cons (_, l) -> l
 
-  (* Environnements de typage *) 
+
+let cons (x : 'a) (l : 'a plist) : 'a plist = match l with
+    Empty -> Cons (x, Empty)
+  | _ -> Cons (x, l)
+
+(* Environnements de typage *) 
 type env = (string * ptype) list
 (* Listes d'équations *) 
 type equa = (ptype * ptype) list
@@ -196,8 +201,9 @@ let ex_omega : pterm = App (Abs ("x", App (Var "x", Var "x")), Abs ("y", App (Va
 let inf_ex_omega : string = inference ex_omega
 let ex_nat3 : pterm = App (ex_nat2, ex_id)
 let inf_ex_nat3 : string = inference ex_nat3
-let ex_deux : pterm = N 2
 let ex_un : pterm = N 1
+let ex_deux : pterm = N 2
+let ex_trois : pterm = N 3
 let ex_addition : pterm = Add (ex_un, ex_deux)
 let ex_substract : pterm = Sub (ex_un, ex_deux)
 let ex_list_vide : pterm = PL Empty
@@ -206,6 +212,14 @@ let ex_list_abs : pterm = PL (Cons (ex_id, Empty))
 let inf_ex_vide : string = inference ex_list_vide
 let inf_ex_list_entiers : string = inference ex_list_entiers
 let inf_ex_list_abs : string = inference ex_list_abs
+let ex_concat_123: pterm plist = Cons (ex_un, Cons (ex_deux, Cons (ex_trois, Empty)))
+
+
+(* TYPABLE** avec le type (T47 -> (T50 -> [(Nat -> Nat)])) *)
+let ex_listP : pterm = Abs("x", ListP [ex_sous; ex_sous])
+let ex_listP_string  : string = inference  ex_listP
+let ex_hd : pterm =  Abs ("x", Hd ex_listP)
+
 
 let main () =
  print_endline "======================";
@@ -229,7 +243,12 @@ let main () =
  print_endline "==========liste [1, 2, 2] type =========";
  print_endline inf_ex_list_entiers;
  print_endline "==========liste [abstractions...] type =========";
- print_endline inf_ex_list_abs
+ print_endline inf_ex_list_abs;
+ print_endline "========== concatenantion =========";
+ print_endline (print_list ex_concat_123);
+ print_endline "========== type of concatenantion result =========";
+ print_endline (print_list ex_concat_123);
+ print_endline (inference (PL ex_concat_123))
 
 
 let _ = main ()
