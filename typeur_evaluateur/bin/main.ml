@@ -81,7 +81,37 @@ let rec cherche_type (v : string) (e : env) : ptype =
   match e with
     [] -> raise VarPasTrouve
   | (v1, t1)::q when v1 = v -> t1
-  | (_, _):: q -> (cherche_type v q) 
+  | (_, _):: q -> (cherche_type v q)
+
+type name_env_type = (string * string) list
+
+(* trouve un nom de variable de type associé à un nom de variable de terme *)
+let find_name (name:string) (name_env:name_env_type) : (string * name_env_type) =
+  let rec find_name_aux (name:string) (name_env:name_env_type) (updated_name_env:name_env_type) : (string * name_env_type) =
+    match name_env with
+    | [] -> let nv:string = nouvelle_var () in nv, (name, nv)::updated_name_env
+    | (name2, new_name)::ns -> match name == name2 with
+      | true -> new_name, updated_name_env
+      | false -> find_name_aux name ns ((name2, new_name)::updated_name_env)
+  in find_name_aux name name_env []
+
+
+let rec alpha_conversion (p_terme:pterm) : pterm =
+  let rec alpha_conversion_aux (p:pterm) name_env = 
+    match p with
+    | Abs (name, ps) -> let (new_name:string), (n_name_env:name_env_type) = (find_name name name_env) 
+        in Abs (new_name, alpha_conversion_aux ps n_name_env)  
+    | App (p1, p2) -> App (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
+    | Var name -> Var (fst (find_name name name_env))
+    | N n -> N n
+    | Add (p1, p2) -> Add (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
+    | Sub (p1, p2) -> Sub (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
+    | PL l -> PL (alpha_conversion_list l name_env)
+        and alpha_conversion_list (l:pterm plist) name_env = 
+          match l with
+          | Empty -> Empty
+          | Cons (p, ps) -> Cons (alpha_conversion_aux p name_env, alpha_conversion_list ps name_env)
+  in alpha_conversion_aux p_terme []
 
 (* vérificateur d'occurence de variables *)  
 let rec appartient_type (v : string) (t : ptype) : bool =
@@ -243,7 +273,11 @@ let main () =
  print_endline (print_list ex_concat_123);
  print_endline "========== type of concatenantion result =========";
  print_endline (print_list ex_concat_123);
- print_endline (inference (PL ex_concat_123))
+ print_endline (inference (PL ex_concat_123));
+ print_endline "========= Alpha conversion ========";
+ let p = Abs ("x", Abs ("y", Abs ("z", App (Var "x", App (Var "y", Var "z"))) )) in
+ print_endline (print_term p);
+ print_endline (print_term (alpha_conversion p))
 
 
 let _ = main ()
