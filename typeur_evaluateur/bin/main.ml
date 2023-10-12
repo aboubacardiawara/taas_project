@@ -86,6 +86,7 @@ let rec cherche_type (v : string) (e : env) : ptype =
 type name_env_type = (string * string) list
 
 (* trouve un nom de variable de type associé à un nom de variable de terme *)
+(*
 let find_name (name:string) (name_env:name_env_type) : (string * name_env_type) =
   let rec find_name_aux (name:string) 
   (name_env:name_env_type) 
@@ -96,16 +97,24 @@ let find_name (name:string) (name_env:name_env_type) : (string * name_env_type) 
     | (name2, new_name)::ns -> match name == name2 with
       | true -> new_name, updated_name_env
       | false -> find_name_aux name ns ((name2, new_name)::updated_name_env)
-  in find_name_aux name name_env []
+    in find_name_aux name name_env []
+    
+  *)
 
-
+let find_name (name:string) (name_env:name_env_type) : string =
+  let rec aux (current_name:string) (binding:string*string) : string =
+    match current_name == (fst binding) with
+    | true  -> snd (binding)
+    | false -> current_name
+  in List.fold_left aux name name_env 
+    
 let rec alpha_conversion (p_terme:pterm) : pterm =
   let rec alpha_conversion_aux (p:pterm) name_env = 
     match p with
-    | Abs (name, ps) -> let (new_name:string), (n_name_env:name_env_type) = (find_name name name_env) 
-        in Abs (new_name, alpha_conversion_aux ps n_name_env)  
+    | Abs (name, ps) -> let (nv):string = nouvelle_var () in
+      Abs (nv, (alpha_conversion_aux ps ((name, nv)::name_env)))
     | App (p1, p2) -> App (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
-    | Var name -> Var (fst (find_name name name_env))
+    | Var name -> Var (find_name name name_env)
     | N n -> N n
     | Add (p1, p2) -> Add (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Sub (p1, p2) -> Sub (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
@@ -279,7 +288,12 @@ let main () =
  print_endline (inference (PL ex_concat_123));
  print_endline "========= Alpha conversion ========";
  let (l:pterm) = PL (Cons (Var "z", Empty)) 
-  in let (p:pterm) = Abs ("x", Abs ("y", Abs ("z", App (Var "x", App (Var "y", App (Var "k", l ) ))))) 
+  in let (p:pterm) = Abs ("z", Abs ("x", Abs ("y", Abs ("z", App (Var "x", App (Var "y", App (Var "k", l ) ))))) )
+   in print_endline (print_term p);
+ print_endline (print_term (alpha_conversion p));
+ print_endline "========= Alpha conversion vicieux ========";
+ let (l:pterm) = PL (Cons (Var "z", Empty)) 
+  in let (p:pterm) = Abs ("x", App (Abs ("x", Var "x"), Var "x")) 
    in print_endline (print_term p);
  print_endline (print_term (alpha_conversion p))
 
