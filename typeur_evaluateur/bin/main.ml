@@ -275,8 +275,9 @@ let main () =
  print_endline (print_list ex_concat_123);
  print_endline (inference (PL ex_concat_123));
  print_endline "========= Alpha conversion ========";
- let p = Abs ("x", Abs ("y", Abs ("z", App (Var "x", App (Var "y", Var "z"))) )) in
- print_endline (print_term p);
+ let (l:pterm) = PL (Cons (Var "z", Empty)) 
+  in let (p:pterm) = Abs ("x", Abs ("y", Abs ("z", App (Var "x", App (Var "y", l ))))) 
+   in print_endline (print_term p);
  print_endline (print_term (alpha_conversion p))
 
 
