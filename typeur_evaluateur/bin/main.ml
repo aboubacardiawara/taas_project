@@ -87,7 +87,10 @@ type name_env_type = (string * string) list
 
 (* trouve un nom de variable de type associé à un nom de variable de terme *)
 let find_name (name:string) (name_env:name_env_type) : (string * name_env_type) =
-  let rec find_name_aux (name:string) (name_env:name_env_type) (updated_name_env:name_env_type) : (string * name_env_type) =
+  let rec find_name_aux (name:string) 
+  (name_env:name_env_type) 
+  (updated_name_env:name_env_type) 
+  :(string * name_env_type) =
     match name_env with
     | [] -> let nv:string = nouvelle_var () in nv, (name, nv)::updated_name_env
     | (name2, new_name)::ns -> match name == name2 with
