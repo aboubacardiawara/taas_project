@@ -15,4 +15,4 @@ test:
 
 run:
 	@echo "$(GREEN)Running project$(NC)"
-	@dune exec typeur_evaluateur
+	@dune exec ./main.exe
