@@ -85,22 +85,6 @@ let rec cherche_type (v : string) (e : env) : ptype =
 
 type name_env_type = (string * string) list
 
-(* trouve un nom de variable de type associé à un nom de variable de terme *)
-(*
-let find_name (name:string) (name_env:name_env_type) : (string * name_env_type) =
-  let rec find_name_aux (name:string) 
-  (name_env:name_env_type) 
-  (updated_name_env:name_env_type) 
-  :(string * name_env_type) =
-    match name_env with
-    | [] -> let nv:string = nouvelle_var () in nv, (name, nv)::updated_name_env
-    | (name2, new_name)::ns -> match name == name2 with
-      | true -> new_name, updated_name_env
-      | false -> find_name_aux name ns ((name2, new_name)::updated_name_env)
-    in find_name_aux name name_env []
-    
-  *)
-
 let find_name (name:string) (name_env:name_env_type) : string =
   let rec aux (current_name:string) (binding:string*string) : string =
     match current_name == (fst binding) with
@@ -131,6 +115,32 @@ let rec appartient_type (v : string) (t : ptype) : bool =
     Var v1 when v1 = v -> true
   | Arr (t1, t2) -> (appartient_type v t1) || (appartient_type v t2) 
   | _ -> false
+
+
+let rec substitution (v:string) (p:pterm) (cible:pterm) : (pterm) = 
+  match cible with
+  | Var vname when v == vname -> p
+  | Var vname -> Var vname
+  | Abs (s, ab) -> Abs (s, substitution v p ab)
+  | App (m, n) -> App (substitution v p m, substitution v p n)
+  | N n -> N n
+  | Add (m, n) -> Add (substitution v p m, substitution v p n)
+  | Sub (m, n) -> Sub (substitution v p m, substitution v p n)
+  | PL l -> PL (substitution_list v p l)
+      and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
+        match l with
+        | Empty -> Empty
+        | Cons (t, ts) -> Cons (substitution v p t, substitution_list v p ts)
+
+
+(*Effectue une beta conversion d'un terme*)
+let rec beta_reduction (p:pterm) : pterm = 
+  match p with
+  | App (m, n) -> let n' = beta_reduction n in 
+    match m with
+      | Abs (vn, at) -> substitution vn n' at
+      | _ -> beta_reduction m
+  | _ -> p
 
 (* remplace une variable par un type dans type *)
 let rec substitue_type (t : ptype) (v : string) (t0 : ptype) : ptype =
