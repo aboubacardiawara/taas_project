@@ -238,4 +238,3 @@ let inference (t : pterm) : string =
   try (let res = unification e "but" in
       (print_term t)^" ***TYPABLE*** avec le type "^(print_type res))
   with Echec_unif bla -> (print_term t)^" ***PAS TYPABLE*** : "^bla
-
