@@ -60,6 +60,10 @@ let main () =
  print_question ex_beta_1 "beta reduction: ";
  print_beta_reduction ex_beta_1;
  print_question omega "beta reduction (programme omega) ";
- print_beta_reduction omega
+ print_beta_reduction omega;
+ print_question ex_beta_mult " beta reduction";
+ print_beta_reduction ex_beta_mult;
+ print_question ex_beta_nested "Applications imbriquees ";
+ print_beta_reduction ex_beta_nested
 
 let _ = main ()

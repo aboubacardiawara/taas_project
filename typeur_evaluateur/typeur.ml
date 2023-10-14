@@ -139,7 +139,8 @@ let rec beta_reduction (p:pterm) : pterm =
   | App (m, n) -> let m' = beta_reduction m in let n' = beta_reduction n in 
     (match m' with
       | Abs (vn, at) -> substitution vn n' at
-      | _ -> m')
+      | _ -> beta_reduction (App (m', n'))
+    )
   | _ -> p
 
 (* remplace une variable par un type dans type *)
