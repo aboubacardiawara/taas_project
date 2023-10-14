@@ -26,3 +26,18 @@ let inf_ex_vide : string = inference ex_list_vide
 let inf_ex_list_entiers : string = inference ex_list_entiers
 let inf_ex_list_abs : string = inference ex_list_abs
 let ex_concat_123: pterm plist = Cons (ex_un, Cons (ex_deux, Cons (ex_trois, Empty)))
+(*exemple substitution*)
+(*1: substitution in (λm.m), m by (λx.xx)*)
+let term1 : pterm = Abs ("m", Var "m")
+let term2 : pterm = Abs ("x", App (Var "x", Var "x"))
+(* substitution x with N 2 in (λx.x+x) *)
+let ex_substitution_3 : pterm = Abs ("x", Add (Var "x", Var "x"))
+let ex_substitution_4 : pterm = N 2
+(*exemple for beta reduction*)
+(*1:  (λm.m)(λx.xx)*)
+let ex_beta_1 : pterm = App (Abs ("m", Var "m"), Abs ("x", App (Var "x", Var "x")))
+(*2. un programme omega*)
+let omega1 : pterm = Abs ("x", App (Var "x", App (Var "x", Var "x")))
+let omega2 : pterm = Abs ("y", App (Var "y", App (Var "y", Var "y")))
+let omega : pterm = App (omega1, omega2)
+(*3. (λx.x+x)2*)

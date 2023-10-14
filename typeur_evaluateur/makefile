@@ -6,6 +6,7 @@ NC := \033[0m # No Color
 all: clean test run
 
 clean:
+	@clear
 	@echo "$(GREEN)Cleaning project$(NC)"
 	@dune clean
 

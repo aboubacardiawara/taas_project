@@ -48,7 +48,7 @@ let rec print_term (t : pterm) : string =
   match t with
     Var x -> x
     | App (t1, t2) -> "(" ^ (print_term t1) ^" "^ (print_term t2) ^ ")"
-    | Abs (x, t) -> "(fun "^ x ^" -> " ^ (print_term t) ^")" 
+    | Abs (x, t) -> "(λ"^ x ^" -> " ^ (print_term t) ^")" 
     | N n -> string_of_int n
     | Add (t1, t2) -> "(" ^ (print_term t1) ^" + "^ (print_term t2) ^ ")"
     | Sub (t1, t2) -> "(" ^ (print_term t1) ^" - "^ (print_term t2) ^ ")"
@@ -117,16 +117,16 @@ let rec appartient_type (v : string) (t : ptype) : bool =
   | _ -> false
 
 
-let rec substitution (v:string) (p:pterm) (cible:pterm) : (pterm) = 
-  match cible with
-  | Var vname when v == vname -> p
-  | Var vname -> Var vname
-  | Abs (s, ab) -> Abs (s, substitution v p ab)
-  | App (m, n) -> App (substitution v p m, substitution v p n)
+let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) = 
+  match actual_p with
+  | Var vname when v == vname -> new_p
+  | Var vname -> actual_p
+  | Abs (s, ab) -> substitution s new_p ab
+  | App (m, n) -> App (substitution v new_p m, substitution v new_p n)
   | N n -> N n
-  | Add (m, n) -> Add (substitution v p m, substitution v p n)
-  | Sub (m, n) -> Sub (substitution v p m, substitution v p n)
-  | PL l -> PL (substitution_list v p l)
+  | Add (m, n) -> Add (substitution v new_p m, substitution v new_p n)
+  | Sub (m, n) -> Sub (substitution v new_p m, substitution v new_p n)
+  | PL l -> PL (substitution_list v new_p l)
       and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
         match l with
         | Empty -> Empty
@@ -136,10 +136,10 @@ let rec substitution (v:string) (p:pterm) (cible:pterm) : (pterm) =
 (*Effectue une beta conversion d'un terme*)
 let rec beta_reduction (p:pterm) : pterm = 
   match p with
-  | App (m, n) -> let n' = beta_reduction n in 
-    match m with
+  | App (m, n) -> let m' = beta_reduction m in let n' = beta_reduction n in 
+    (match m' with
       | Abs (vn, at) -> substitution vn n' at
-      | _ -> beta_reduction m
+      | _ -> m')
   | _ -> p
 
 (* remplace une variable par un type dans type *)

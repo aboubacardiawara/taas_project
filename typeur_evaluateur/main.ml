@@ -1,6 +1,15 @@
 open Typeur
 open Exemple
 
+let print_question (p:pterm) (desc:string) : unit =
+  print_endline (desc ^ (print_term p))
+
+let print_beta_reduction (p:pterm) : unit =
+  print_endline (print_term (beta_reduction p))
+
+let print_subs_question (p:pterm) (var:string) (q:pterm) : unit =
+  print_endline ( "? " ^ var ^ " par " ^ (print_term q) ^ " dans " ^ (print_term p))
+
 
 let main () =
  print_endline "======================";
@@ -39,7 +48,18 @@ let main () =
  let (l:pterm) = PL (Cons (Var "z", Empty)) 
   in let (p:pterm) = Abs ("x", App (Abs ("x", Var "x"), Var "x")) 
    in print_endline (print_term p);
- print_endline (print_term (alpha_conversion p))
-
+ print_endline (print_term (alpha_conversion p));
+ print_endline "========= Substitution ========";
+ print_subs_question term1 "m" term2;
+ print_endline (print_term (substitution "m" term2 term1));
+ print_subs_question ex_substitution_3 "m" ex_substitution_4;
+ print_endline (print_term (substitution "x" ex_substitution_4 ex_substitution_3));
+ print_subs_question omega1 "x" omega2;
+ print_endline (print_term (substitution "x" omega2 omega1));
+ print_endline "========= beta reduction ========";
+ print_question ex_beta_1 "beta reduction: ";
+ print_beta_reduction ex_beta_1;
+ print_question omega "beta reduction (programme omega) ";
+ print_beta_reduction omega
 
 let _ = main ()
