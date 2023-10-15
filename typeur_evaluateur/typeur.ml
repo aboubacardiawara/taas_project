@@ -138,7 +138,7 @@ let rec beta_reduction (p:pterm) : pterm =
   match p with
   | App (m, n) -> let m' = beta_reduction m in let n' = beta_reduction n in 
     (match m' with
-      | Abs (vn, at) -> substitution vn n' at
+      | Abs (vn, at) -> beta_reduction (substitution vn n' at)
       | _ -> beta_reduction (App (m', n'))
     )
   | _ -> p
