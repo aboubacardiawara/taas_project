@@ -64,6 +64,8 @@ let main () =
  print_question ex_beta_mult " beta reduction";
  print_beta_reduction ex_beta_mult;
  print_question ex_beta_nested "Applications imbriquees ";
- print_beta_reduction ex_beta_nested
+ print_beta_reduction ex_beta_nested;
+ print_question ex_free_var "variable libre";
+ print_beta_reduction ex_free_var
 
 let _ = main ()

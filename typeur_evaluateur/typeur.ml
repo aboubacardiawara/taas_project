@@ -132,7 +132,6 @@ let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) =
         | Empty -> Empty
         | Cons (t, ts) -> Cons (substitution v p t, substitution_list v p ts)
 
-
 (*Effectue une beta conversion d'un terme*)
 let rec beta_reduction (p:pterm) : pterm = 
   match p with
@@ -142,6 +141,24 @@ let rec beta_reduction (p:pterm) : pterm =
       | _ -> beta_reduction (App (m', n'))
     )
   | _ -> p
+
+
+let rec equals (p1:pterm) (p2:pterm) : bool =
+  match p1, p2 with
+  | Var v1, Var v2 -> v1 = v2
+  | App (m1, n1), App (m2, n2) -> (equals m1 m2) && (equals n1 n2)
+  | Abs (s1, ab1), Abs (s2, ab2) -> let nv :pterm = Var (nouvelle_var ()) in
+    equals (substitution s1 nv ab1) (substitution s2 nv ab2)
+  | N n1, N n2 -> n1 = n2
+  | Add (m1, n1), Add (m2, n2) -> (equals m1 m2) && (equals n1 n2)
+  | Sub (m1, n1), Sub (m2, n2) -> (equals m1 m2) && (equals n1 n2)
+  | PL l1, PL l2 -> equals_list l1 l2
+  | _, _ -> false
+    and equals_list (l1:pterm plist) (l2:pterm plist) : bool =
+      match l1, l2 with
+      | Empty, Empty -> true
+      | Cons (t1, ts1), Cons (t2, ts2) -> (equals t1 t2) && (equals_list ts1 ts2)
+      | _, _ -> false
 
 (* remplace une variable par un type dans type *)
 let rec substitue_type (t : ptype) (v : string) (t0 : ptype) : ptype =
