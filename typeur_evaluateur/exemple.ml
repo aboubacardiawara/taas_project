@@ -66,3 +66,11 @@ let expected_eval_substraction : pterm = N (-1)
 (*multiplication*)
 let ex_eval_multiplication : pterm = eval (Mult (N 2, N 3))
 let expected_eval_multiplication : pterm = N 6
+(*condition*)
+let ex_eval_condition_1 : pterm = eval (Condition (N 1, N 1, N 2))
+let expected_eval_condition_1 : pterm = N 2
+let ex_eval_condition_2 : pterm = eval (Condition (N 0, N 1, N 2))
+let expected_eval_condition_2 : pterm = N 1
+(*list*)
+let ex_eval_list : pterm = eval (PL (Cons (Add (2, 3) , Cons (Mult (0, 1),Empty))))
+let expected_eval_list : pterm = PL (Cons (N 5, Cons (N 0, Empty)))

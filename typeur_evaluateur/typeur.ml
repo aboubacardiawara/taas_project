@@ -12,6 +12,7 @@ type pterm =
   | Sub of pterm * pterm
   | PL of pterm plist
   | Mult of pterm * pterm
+  | Cond of pterm * pterm * pterm
 
 
   (* Types *) 
@@ -20,6 +21,7 @@ type ptype =
   | Arr of ptype * ptype 
   | Nat
   | PList of ptype
+  
 
 
 
@@ -54,6 +56,7 @@ let rec print_term (t : pterm) : string =
     | Add (t1, t2) -> "(" ^ (print_term t1) ^" + "^ (print_term t2) ^ ")"
     | Sub (t1, t2) -> "(" ^ (print_term t1) ^" - "^ (print_term t2) ^ ")"
     | Mult (t1, t2) -> "(" ^ (print_term t1) ^" * "^ (print_term t2) ^ ")"
+    | Cond (t1, t2, t3) -> "(if " ^ (print_term t1) ^ " then " ^ (print_term t2) ^ " else " ^ (print_term t3) ^ ")"
     | PL l -> "[" ^ print_list l ^ "]"
     and print_list (l : pterm plist) : string =
       match l with

@@ -40,6 +40,8 @@ let test () =
  announce_test_case "evaluation d'une addition (1-2)" ex_eval_substraction expected_eval_substraction;
  assert_equal_pterm ex_eval_substraction expected_eval_substraction;
  announce_test_case "evaluation d'une multiplication (2*3)" ex_eval_multiplication expected_eval_multiplication;
- assert_equal_pterm ex_eval_multiplication expected_eval_multiplication
+ assert_equal_pterm ex_eval_multiplication expected_eval_multiplication;
+ announce_test_case "evaluation d'une liste [2+3; 0*1]" ex_eval_list expected_eval_list;
+ assert_equal_pterm ex_eval_list expected_eval_list
 
 let _ = test ()
