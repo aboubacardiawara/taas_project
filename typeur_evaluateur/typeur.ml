@@ -11,6 +11,7 @@ type pterm =
   | Add of pterm * pterm 
   | Sub of pterm * pterm
   | PL of pterm plist
+  | Mult of pterm * pterm
 
 
   (* Types *) 
@@ -52,6 +53,7 @@ let rec print_term (t : pterm) : string =
     | N n -> string_of_int n
     | Add (t1, t2) -> "(" ^ (print_term t1) ^" + "^ (print_term t2) ^ ")"
     | Sub (t1, t2) -> "(" ^ (print_term t1) ^" - "^ (print_term t2) ^ ")"
+    | Mult (t1, t2) -> "(" ^ (print_term t1) ^" * "^ (print_term t2) ^ ")"
     | PL l -> "[" ^ print_list l ^ "]"
     and print_list (l : pterm plist) : string =
       match l with
@@ -102,6 +104,7 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | N n -> N n
     | Add (p1, p2) -> Add (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Sub (p1, p2) -> Sub (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
+    | Mult (p1, p2) -> Mult (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | PL l -> PL (alpha_conversion_list l name_env)
         and alpha_conversion_list (l:pterm plist) name_env = 
           match l with
@@ -126,6 +129,7 @@ let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) =
   | N n -> N n
   | Add (m, n) -> Add (substitution v new_p m, substitution v new_p n)
   | Sub (m, n) -> Sub (substitution v new_p m, substitution v new_p n)
+  | Mult (m, n) -> Mult (substitution v new_p m, substitution v new_p n)
   | PL l -> PL (substitution_list v new_p l)
       and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
         match l with
@@ -156,6 +160,7 @@ let rec equals (p1:pterm) (p2:pterm) : bool =
   | N n1, N n2 -> n1 = n2
   | Add (m1, n1), Add (m2, n2) -> (equals m1 m2) && (equals n1 n2)
   | Sub (m1, n1), Sub (m2, n2) -> (equals m1 m2) && (equals n1 n2)
+  | Mult (m1, n1), Mult (m2, n2) -> (equals m1 m2) && (equals n1 n2)
   | PL l1, PL l2 -> equals_list l1 l2
   | _, _ -> false
     and equals_list (l1:pterm plist) (l2:pterm plist) : bool =
@@ -193,6 +198,9 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
       let eq2 : equa = genere_equa t2 Nat e in
       (ty, Nat)::(eq1 @ eq2)
   | Sub (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
+      let eq2 : equa = genere_equa t2 Nat e in
+      (ty, Nat)::(eq1 @ eq2)
+  | Mult (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
       let eq2 : equa = genere_equa t2 Nat e in
       (ty, Nat)::(eq1 @ eq2)
   | PL l -> match l with

@@ -14,7 +14,7 @@ let print_subs_question (p:pterm) (var:string) (q:pterm) : unit =
 let announce_test_case (desc:string) (p:pterm) (q:pterm) : unit =
   print_endline ("- testcase: " ^ desc ^ "\n  fixture: " ^ (print_term p) ^ "  expected: " ^ (print_term q) ^ "\n")
 
-let main () =
+let test () =
  print_endline "> Running tests";
  print_endline "========= Substitution ========";
  announce_test_case "substitution dans l'identite" ex_substitution_1 expected_substitution_1;
@@ -38,6 +38,8 @@ let main () =
  announce_test_case "evaluation d'une addition (1+1)" ex_eval_addition expected_eval_addition ;
  assert_equal_pterm ex_eval_addition expected_eval_addition;
  announce_test_case "evaluation d'une addition (1-2)" ex_eval_substraction expected_eval_substraction;
- assert_equal_pterm ex_eval_substraction expected_eval_substraction
+ assert_equal_pterm ex_eval_substraction expected_eval_substraction;
+ announce_test_case "evaluation d'une multiplication (2*3)" ex_eval_multiplication expected_eval_multiplication;
+ assert_equal_pterm ex_eval_multiplication expected_eval_multiplication
 
-let _ = main ()
+let _ = test ()

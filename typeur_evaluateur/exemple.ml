@@ -57,8 +57,12 @@ let expected_beta_nested : pterm = App (Abs ("x", App (Var "x", Abs ("y", Var "y
 let ex_free_var : pterm = beta_reduction (App (Abs ("x", Add (Var "x",  Var "y")), Var "z"))
 let expected_free_var : pterm = Abs ("y", App (Abs ("x", Add (Var "x", Var "y")), Var "z"))
 (*6. evaluation reduction*)
-(*6. evaluation reduction*)
+(*addition*)
 let ex_eval_addition : pterm = eval (Add (N 1, N 2))
 let expected_eval_addition : pterm = N 3
+(*substraction*)
 let ex_eval_substraction : pterm = eval (Sub (N 1, N 2))
 let expected_eval_substraction : pterm = N (-1)
+(*multiplication*)
+let ex_eval_multiplication : pterm = eval (Mult (N 2, N 3))
+let expected_eval_multiplication : pterm = N 6
