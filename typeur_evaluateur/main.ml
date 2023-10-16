@@ -22,12 +22,12 @@ let main () =
  announce_test_case "substitution dans une abstraction" ex_substitution_2 expected_substitution_2;
  assert_equal_pterm ex_substitution_2 expected_substitution_2;
  print_endline "========= Beta reduction =======";
- print_question ex_beta_1 "beta reduction: ";
- print_beta_reduction ex_beta_1;
+ announce_test_case "beta reduction (λm.m)(λx.xx)" ex_beta_1 expected_beta_1;
+  assert_equal_pterm ex_beta_1 expected_beta_1;
  (*beta reduction (programme omega)*)
- print_beta_reduction omega;
- print_beta_reduction ex_beta_mult;
- assert_equal_pterm (beta_reduction ex_beta_1) (expected_beta_1);
+ (*print_beta_reduction omega;*)
+ announce_test_case "beta reduction d'une application" ex_beta_mult expected_beta_mult;
+ assert_equal_pterm ex_beta_mult expected_beta_mult;
  (*Applications imbriquees *)
  print_beta_reduction ex_beta_nested;
  assert_equal_pterm ex_beta_nested expected_beta_nested;
@@ -35,9 +35,9 @@ let main () =
  announce_test_case "terme contenant une variable libre" ex_free_var expected_free_var;
  assert_equal_pterm ex_free_var expected_free_var;
  print_endline "========= Evaluation =======";
- announce_test_case "evaluation d'une addition" ex_eval_addition expected_eval_addition ;
+ announce_test_case "evaluation d'une addition (1+1)" ex_eval_addition expected_eval_addition ;
  assert_equal_pterm ex_eval_addition expected_eval_addition;
- announce_test_case "evaluation d'une addition" ex_eval_substraction expected_eval_substraction;
+ announce_test_case "evaluation d'une addition (1-2)" ex_eval_substraction expected_eval_substraction;
  assert_equal_pterm ex_eval_substraction expected_eval_substraction
 
 let _ = main ()
