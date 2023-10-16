@@ -108,6 +108,7 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Add (p1, p2) -> Add (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Sub (p1, p2) -> Sub (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Mult (p1, p2) -> Mult (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
+    | Cond (p1, p2, p3) -> Cond (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env, alpha_conversion_aux p3 name_env)
     | PL l -> PL (alpha_conversion_list l name_env)
         and alpha_conversion_list (l:pterm plist) name_env = 
           match l with
@@ -133,12 +134,12 @@ let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) =
   | Add (m, n) -> Add (substitution v new_p m, substitution v new_p n)
   | Sub (m, n) -> Sub (substitution v new_p m, substitution v new_p n)
   | Mult (m, n) -> Mult (substitution v new_p m, substitution v new_p n)
+  | Cond (t1, t2, t3) -> Cond (substitution v new_p t1, substitution v new_p t2, substitution v new_p t3)
   | PL l -> PL (substitution_list v new_p l)
       and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
-        match l with
+        (match l with
         | Empty -> Empty
-        | Cons (t, ts) -> Cons (substitution v p t, substitution_list v p ts)
-
+        | Cons (t, ts) -> Cons (substitution v p t, substitution_list v p ts))
 (*Effectue une beta conversion d'un terme*)
 let rec beta_reduction (p:pterm) : pterm = 
   match p with
@@ -149,11 +150,37 @@ let rec beta_reduction (p:pterm) : pterm =
     )
   | _ -> p
 
-let eval = beta_reduction
+let rec eval (p:pterm) : pterm = 
+  match p with
+  | N n -> N n
+  | Var a -> Var a
+  | Add (m, n) -> let m' = eval m in let n' = eval n in 
+    (match m', n' with
+      | N a, N b -> N (a + b)
+      | _, _ -> Add (m', n')
+    )
+  | Sub (m, n) -> let m' = eval m in let n' = eval n in
+    (match m', n' with
+      | N a, N b -> N (a - b)
+      | _, _ -> Sub (m', n')
+    )
+  | Mult (m, n) -> let m' = eval m in let n' = eval n in
+    (match m', n' with
+      | N a, N b -> N (a * b)
+      | _, _ -> Mult (m', n')
+    )
+  | App (_, _) -> beta_reduction p
+  | PL l -> PL (eval_list l)
+  | Cond (N 0, ifterme, elseterme) -> elseterme
+  | Cond (PL Empty, ifterme, elseterme) -> elseterme
+  | Cond (_, ifterme, elseterme) -> ifterme
+  | Abs (s, ab) -> Abs (s, ab)
+  and eval_list (l:pterm plist) : pterm plist =
+        match l with
+        | Empty -> Empty
+        | Cons (t, ts) -> Cons (eval t, eval_list ts)
 
 (* vérificateur d'égalité de termes *)
-
-
 let rec equals (p1:pterm) (p2:pterm) : bool =
   match p1, p2 with
   | Var v1, Var v2 -> v1 = v2
@@ -206,10 +233,15 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
   | Mult (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
       let eq2 : equa = genere_equa t2 Nat e in
       (ty, Nat)::(eq1 @ eq2)
+  | Cond (t1, t2, t3) -> let eq1 : equa = genere_equa t1 Nat e in
+      let eq2 : equa = genere_equa t2 ty e in
+      let eq3 : equa = genere_equa t3 ty e in
+      (eq1 @ eq2 @ eq3)
   | PL l -> match l with
       Empty -> [(ty, PList (Var (nouvelle_var ())))]
       | Cons (t, _) -> let nv = Var (nouvelle_var ()) in 
         (ty, PList nv) :: (genere_equa t (nv) e)
+  
 
       
 exception Echec_unif of string      
