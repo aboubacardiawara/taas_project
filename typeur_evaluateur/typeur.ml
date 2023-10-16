@@ -142,6 +142,10 @@ let rec beta_reduction (p:pterm) : pterm =
     )
   | _ -> p
 
+let eval = beta_reduction
+
+(* vérificateur d'égalité de termes *)
+
 
 let rec equals (p1:pterm) (p2:pterm) : bool =
   match p1, p2 with

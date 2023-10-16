@@ -1,5 +1,6 @@
 open Typeur
 open Exemple
+open Asserter
 
 let print_question (p:pterm) (desc:string) : unit =
   print_endline (desc ^ (print_term p))
@@ -10,62 +11,33 @@ let print_beta_reduction (p:pterm) : unit =
 let print_subs_question (p:pterm) (var:string) (q:pterm) : unit =
   print_endline ( "? " ^ var ^ " par " ^ (print_term q) ^ " dans " ^ (print_term p))
 
+let announce_test_case (desc:string) (p:pterm) (q:pterm) : unit =
+  print_endline ("- testcase: " ^ desc ^ "\n  fixture: " ^ (print_term p) ^ "  expected: " ^ (print_term q) ^ "\n")
 
 let main () =
- print_endline "======================";
- print_endline inf_ex_id;
- print_endline "======================";
- print_endline inf_ex_k;
- print_endline "======================";
- print_endline inf_ex_s;
- print_endline "======================";
- print_endline inf_ex_omega;
- print_endline "======================";
- print_endline inf_ex_nat1;
- print_endline "======================";
- print_endline inf_ex_nat2;
- print_endline "=========empty liste==========";
- print_endline (print_term ex_list_vide);
- print_endline "==========liste [1, 2, 2]=========";
- print_endline (print_term ex_list_entiers);
- print_endline "========== empty liste type =========";
- print_endline inf_ex_vide;
- print_endline "==========liste [1, 2, 2] type =========";
- print_endline inf_ex_list_entiers;
- print_endline "==========liste [abstractions...] type =========";
- print_endline inf_ex_list_abs;
- print_endline "========== concatenantion =========";
- print_endline (print_list ex_concat_123);
- print_endline "========== type of concatenantion result =========";
- print_endline (print_list ex_concat_123);
- print_endline (inference (PL ex_concat_123));
- print_endline "========= Alpha conversion ========";
- let (l:pterm) = PL (Cons (Var "z", Empty)) 
-  in let (p:pterm) = Abs ("z", Abs ("x", Abs ("y", Abs ("z", App (Var "x", App (Var "y", App (Var "k", l ) ))))) )
-   in print_endline (print_term p);
- print_endline (print_term (alpha_conversion p));
- print_endline "========= Alpha conversion vicieux ========";
- let (l:pterm) = PL (Cons (Var "z", Empty)) 
-  in let (p:pterm) = Abs ("x", App (Abs ("x", Var "x"), Var "x")) 
-   in print_endline (print_term p);
- print_endline (print_term (alpha_conversion p));
+ print_endline "> Running tests";
  print_endline "========= Substitution ========";
- print_subs_question term1 "m" term2;
- print_endline (print_term (substitution "m" term2 term1));
- print_subs_question ex_substitution_3 "m" ex_substitution_4;
- print_endline (print_term (substitution "x" ex_substitution_4 ex_substitution_3));
- print_subs_question omega1 "x" omega2;
- print_endline (print_term (substitution "x" omega2 omega1));
- print_endline "========= beta reduction ========";
+ announce_test_case "substitution dans l'identite" ex_substitution_1 expected_substitution_1;
+ assert_equal_pterm ex_substitution_1 expected_substitution_1;
+ announce_test_case "substitution dans une abstraction" ex_substitution_2 expected_substitution_2;
+ assert_equal_pterm ex_substitution_2 expected_substitution_2;
+ print_endline "========= Beta reduction =======";
  print_question ex_beta_1 "beta reduction: ";
  print_beta_reduction ex_beta_1;
- print_question omega "beta reduction (programme omega) ";
+ (*beta reduction (programme omega)*)
  print_beta_reduction omega;
- print_question ex_beta_mult " beta reduction";
  print_beta_reduction ex_beta_mult;
- print_question ex_beta_nested "Applications imbriquees ";
+ assert_equal_pterm (beta_reduction ex_beta_1) (expected_beta_1);
+ (*Applications imbriquees *)
  print_beta_reduction ex_beta_nested;
- print_question ex_free_var "variable libre";
- print_beta_reduction ex_free_var
+ assert_equal_pterm ex_beta_nested expected_beta_nested;
+ (*variable libre*)
+ announce_test_case "terme contenant une variable libre" ex_free_var expected_free_var;
+ assert_equal_pterm ex_free_var expected_free_var;
+ print_endline "========= Evaluation =======";
+ announce_test_case "evaluation d'une addition" ex_eval_addition expected_eval_addition ;
+ assert_equal_pterm ex_eval_addition expected_eval_addition;
+ announce_test_case "evaluation d'une addition" ex_eval_substraction expected_eval_substraction;
+ assert_equal_pterm ex_eval_substraction expected_eval_substraction
 
 let _ = main ()

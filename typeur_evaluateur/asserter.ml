@@ -1,4 +1,7 @@
+open Typeur
 exception Assert_failure of string
+exception Assert_equal_failure of string
+exception Assert_not_equal_failure of string
 
 let assert_true_with_message (b:bool) (msg:string) : unit = 
   if b then () else raise (Assert_failure msg)
@@ -15,10 +18,23 @@ let assert_raises (e:exn) (f:(unit -> 'a)) : unit =
     | e' when e = e' -> ()
     | _ -> raise (Assert_failure "assert_raises")
 
-let assert_equals (m:'a)  (m:'a) : unit = 
-  if m = m then () else raise (Assert_failure "assert_equals")
+let assert_equal_with_message (m:'a) (m:'a) (msg:string) : unit =
+  if m = m then () else raise (Assert_equal_failure msg)
+
+let assert_not_equal_with_message (m:'a) (m:'a) (msg:string) : unit =
+  if m <> m then () else raise (Assert_not_equal_failure msg)
+
+let assert_equal = assert_equal_with_message
+
+
+let assert_equal_pterm (m:pterm) (n:pterm) : unit =
+  assert_equal_with_message m n ((print_term m) ^ " and " ^ (print_term n))
+
+let assert_not_equal_pterm (m:pterm) (n:pterm) : unit =
+  assert_not_equal_with_message m n ((print_term m) ^ " and " ^ (print_term n))
 
 
 let assert_not_equals (m:'a) (m:'a) : unit =
-  if m <> m then () else raise (Assert_failure "assert_not_equals")
+  if m <> m then () else raise (Assert_not_equal_failure "")
+
 
