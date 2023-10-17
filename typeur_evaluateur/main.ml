@@ -43,6 +43,15 @@ let test () =
  announce_test_case "evaluation d'une multiplication (2*3)" ex_eval_multiplication expected_eval_multiplication;
  assert_equal_pterm ex_eval_multiplication expected_eval_multiplication;
  announce_test_case "evaluation d'une liste [2+3; 0*1]" ex_eval_list expected_eval_list;
- assert_equal_pterm ex_eval_list expected_eval_list
-
+ assert_equal_pterm ex_eval_list expected_eval_list;
+ print_endline "========= evaluation sur les conditions =======";
+ announce_test_case "0 est comme false" ex_eval_condition_1 expected_eval_condition_1;
+ assert_equal_pterm ex_eval_condition_1 expected_eval_condition_1;
+ announce_test_case "1 est comme true" ex_eval_condition_2 expected_eval_condition_2;
+ assert_equal_pterm ex_eval_condition_2 expected_eval_condition_2;
+ announce_test_case "liste vide est comme false" ex_eval_condition_list_1 expected_eval_condition_list_1;
+ assert_equal_pterm ex_eval_condition_list_1  expected_eval_condition_list_1;
+ announce_test_case "liste non vide est comme true" ex_eval_condition_list_2 expected_eval_condition_list_2;
+ assert_equal_pterm ex_eval_condition_list_2  expected_eval_condition_list_2
+ 
 let _ = test ()
