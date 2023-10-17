@@ -13,6 +13,7 @@ type pterm =
   | PL of pterm plist
   | Mult of pterm * pterm
   | Cond of pterm * pterm * pterm
+  | Let of string * pterm * pterm
 
 
   (* Types *) 
@@ -21,6 +22,7 @@ type ptype =
   | Arr of ptype * ptype 
   | Nat
   | PList of ptype
+  | Let of string * ptype * ptype
   
 
 
@@ -58,6 +60,7 @@ let rec print_term (t : pterm) : string =
     | Mult (t1, t2) -> "(" ^ (print_term t1) ^" * "^ (print_term t2) ^ ")"
     | Cond (t1, t2, t3) -> "(if " ^ (print_term t1) ^ " then " ^ (print_term t2) ^ " else " ^ (print_term t3) ^ ")"
     | PL l -> "[" ^ print_list l ^ "]"
+    | Let (x, t1, t2) -> "(let "^ x ^" = " ^ (print_term t1) ^" in " ^ (print_term t2) ^")"
     and print_list (l : pterm plist) : string =
       match l with
         Empty -> ""
@@ -71,6 +74,7 @@ let rec print_type (t : ptype) : string =
   | Arr (t1, t2) -> "(" ^ (print_type t1) ^" -> "^ (print_type t2) ^")"
   | Nat -> "Nat" 
   | PList l -> (print_type l) ^ " PList"
+  | Let (x, t1, t2) -> "(let "^ x ^" : " ^ (print_type t1) ^" in " ^ (print_type t2) ^")"
 
 (* générateur de noms frais de variables de types *)
 let compteur_var : int ref = ref 0                    
@@ -109,6 +113,8 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Sub (p1, p2) -> Sub (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Mult (p1, p2) -> Mult (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Cond (p1, p2, p3) -> Cond (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env, alpha_conversion_aux p3 name_env)
+    | Let (name, p1, p2) -> let (nv):string = nouvelle_var () in
+      Let (nv, (alpha_conversion p1), (alpha_conversion_aux p2 ((name, nv)::name_env)))
     | PL l -> PL (alpha_conversion_list l name_env)
         and alpha_conversion_list (l:pterm plist) name_env = 
           match l with
@@ -128,13 +134,15 @@ let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) =
   match actual_p with
   | Var vname when v == vname -> new_p
   | Var vname -> actual_p
-  | Abs (s, ab) -> substitution s new_p ab
+  | Abs (s, ab) when s = v -> substitution s new_p ab
+  | Abs (s, ab) -> Abs (s, substitution v new_p ab)
   | App (m, n) -> App (substitution v new_p m, substitution v new_p n)
   | N n -> N n
   | Add (m, n) -> Add (substitution v new_p m, substitution v new_p n)
   | Sub (m, n) -> Sub (substitution v new_p m, substitution v new_p n)
   | Mult (m, n) -> Mult (substitution v new_p m, substitution v new_p n)
   | Cond (t1, t2, t3) -> Cond (substitution v new_p t1, substitution v new_p t2, substitution v new_p t3)
+  | Let (s, t1, t2) -> Let (s, substitution v new_p t1, substitution v new_p t2)
   | PL l -> PL (substitution_list v new_p l)
       and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
         (match l with
@@ -169,12 +177,13 @@ let rec eval (p:pterm) : pterm =
       | N a, N b -> N (a * b)
       | _, _ -> Mult (m', n')
     )
-  | App (_, _) -> beta_reduction p
+  | App (_, _) -> let res = beta_reduction p in eval res
   | PL l -> PL (eval_list l)
   | Cond (N 0, ifterme, elseterme) -> elseterme
   | Cond (PL Empty, ifterme, elseterme) -> elseterme
   | Cond (_, ifterme, elseterme) -> ifterme
   | Abs (s, ab) -> Abs (s, ab)
+  | Let (s, p1, p2) -> let v= eval p1 in eval (substitution s v p2)
   and eval_list (l:pterm plist) : pterm plist =
         match l with
         | Empty -> Empty
