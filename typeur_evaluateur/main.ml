@@ -31,6 +31,8 @@ let test () =
  (*Applications imbriquees *)
  announce_test_case "fonction appliquée à une fonction (λx.x (λy.y))  (λz.z)" ex_beta_nested expected_beta_nested;
  assert_equal_pterm ex_beta_nested expected_beta_nested;
+ announce_test_case "test de Raphaël" ex_beta_rafael expected_beta_rafael;
+ assert_equal_pterm ex_beta_rafael expected_beta_rafael;
  (*variable libre*)
  announce_test_case "terme contenant une variable libre" ex_free_var expected_free_var;
  assert_equal_pterm ex_free_var expected_free_var;
