@@ -62,5 +62,25 @@ let test () =
  announce_test_case "let x= (f x -> x) in (f y -> x)" ex_eval_let_3 expected_eval_let_3;
  assert_equal_pterm ex_eval_let_3 expected_eval_let_3
 
+let test_type () =
+  print_endline "INFERENCE DE TYPE";
+  print_endline ("sur les let");
+  print_endline (print_term ex_eval_let_1_brut);
+  print_endline (inference ex_eval_let_1_brut);
+  print_endline (print_term (eval ex_eval_let_1_brut));
+  print_endline "";
+
+  print_endline (print_term (eval ex_typage_let_1));
+  print_endline (inference (ex_typage_let_1));
+  print_endline (print_term (eval ex_typage_let_1));
+  print_endline "";
+
+  print_endline (print_term (ex_typage_let_2));
+  print_endline (inference ex_typage_let_2);
+  print_endline (print_term (eval ex_typage_let_2));
+  print_endline ""
+  
+
+
  
-let _ = test ()
+let _ = test_type ()

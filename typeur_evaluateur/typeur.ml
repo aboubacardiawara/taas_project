@@ -22,7 +22,6 @@ type ptype =
   | Arr of ptype * ptype 
   | Nat
   | PList of ptype
-  | Let of string * ptype * ptype
   
 
 
@@ -74,7 +73,6 @@ let rec print_type (t : ptype) : string =
   | Arr (t1, t2) -> "(" ^ (print_type t1) ^" -> "^ (print_type t2) ^")"
   | Nat -> "Nat" 
   | PList l -> (print_type l) ^ " PList"
-  | Let (x, t1, t2) -> "(let "^ x ^" : " ^ (print_type t1) ^" in " ^ (print_type t2) ^")"
 
 (* générateur de noms frais de variables de types *)
 let compteur_var : int ref = ref 0                    
@@ -183,7 +181,7 @@ let rec eval (p:pterm) : pterm =
   | Cond (PL Empty, ifterme, elseterme) -> elseterme
   | Cond (_, ifterme, elseterme) -> ifterme
   | Abs (s, ab) -> Abs (s, ab)
-  | Let (s, p1, p2) -> let v= eval p1 in eval (substitution s v p2)
+  | Let (s, p1, p2) -> let v = eval p1 in eval (substitution s v (alpha_conversion p2))
   and eval_list (l:pterm plist) : pterm plist =
         match l with
         | Empty -> Empty
@@ -246,10 +244,15 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
       let eq2 : equa = genere_equa t2 ty e in
       let eq3 : equa = genere_equa t3 ty e in
       (eq1 @ eq2 @ eq3)
+  | Let (x, e1, e2) -> let nv = nouvelle_var () in 
+      let eq1 : equa = genere_equa e1 (Var nv) e in
+      let eq2 : equa = genere_equa e2 ty ((x, Var nv)::e) in
+      eq1 @ eq2 
   | PL l -> match l with
       Empty -> [(ty, PList (Var (nouvelle_var ())))]
       | Cons (t, _) -> let nv = Var (nouvelle_var ()) in 
         (ty, PList nv) :: (genere_equa t (nv) e)
+        
   
 
       

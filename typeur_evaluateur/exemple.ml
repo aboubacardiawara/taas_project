@@ -84,7 +84,8 @@ let expected_eval_condition_list_2 : pterm = N 2
 let ex_eval_list : pterm = eval (PL (Cons (Add (N 2, N 3) , Cons (Mult (N 0, N 1), Empty))))
 let expected_eval_list : pterm = PL (Cons (N 5, Cons (N 0, Empty)))
 (*let*)
-(*1. let x = 1 in x + 3*)
+(*1. let x = 1 in x + 3, type_inference: int*)
+let ex_eval_let_1_brut : pterm = Let ("x", N 1, Add (Var "x", N 3))
 let ex_eval_let_1 : pterm = eval (Let ("x", N 1, Add (Var "x", N 3)))
 let expected_eval_let_1 : pterm = N 4
 (*2. let x=2 in (λy -> y * x) 10*)
@@ -93,4 +94,6 @@ let expected_eval_let_2 : pterm = N 20
 (*3. let x= (f x -> x) in (f y -> x)*)
 let ex_eval_let_3 : pterm = eval (Let ("x", Abs ("x", Var "x"), Abs ("y", Var "x")))
 let expected_eval_let_3 : pterm = Abs ("y", Abs ("x", Var "x"))
-(*4. (λx -> ((λy -> y) (λz -> z))*) 
+(*TYPAGE: let x=4 in (func x -> x) *)
+let ex_typage_let_1 : pterm = Let ("x", N 4, Abs ("x", Var "x"))
+let ex_typage_let_2 : pterm = Let ("x", N 4, Abs ("y", Var "x"))
