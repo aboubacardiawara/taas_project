@@ -93,4 +93,4 @@ let test_type () =
 
 
  
-let _ = test_type ()
+let _ = test ()

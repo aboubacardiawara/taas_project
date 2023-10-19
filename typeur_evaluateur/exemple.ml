@@ -85,7 +85,8 @@ let ex_eval_condition_list_2_brut : pterm = (Cond (PL Empty, N 1, N 2))
 let ex_eval_condition_list_2 : pterm = eval ex_eval_condition_list_2_brut
 let expected_eval_condition_list_2 : pterm = N 2
 (*list*)
-let ex_eval_list : pterm = eval (PL (Cons (Add (N 2, N 3) , Cons (Mult (N 0, N 1), Empty))))
+let ex_eval_list_brut : pterm = (PL (Cons (Add (N 2, N 3) , Cons (Mult (N 0, N 1), Empty))))
+let ex_eval_list : pterm = eval ex_eval_list_brut
 let expected_eval_list : pterm = PL (Cons (N 5, Cons (N 0, Empty)))
 (*let*)
 (*1. let x = 1 in x + 3, type_inference: int*)
