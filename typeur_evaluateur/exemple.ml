@@ -71,14 +71,18 @@ let expected_eval_substraction : pterm = N (-1)
 let ex_eval_multiplication : pterm = eval (Mult (N 2, N 3))
 let expected_eval_multiplication : pterm = N 6
 (*condition sur les entiers*)
-let ex_eval_condition_1 : pterm = eval (Cond (N 1, N 1, N 2))
+let ex_eval_condition_1_brut : pterm = (Cond (N 1, N 1, N 2))
+let ex_eval_condition_1 : pterm = eval ex_eval_condition_1_brut 
 let expected_eval_condition_1 : pterm = N 1
-let ex_eval_condition_2 : pterm = eval (Cond (N 0, N 1, N 2))
+let ex_eval_condition_2_brut : pterm = (Cond (N 0, N 1, N 2))
+let ex_eval_condition_2 : pterm = eval ex_eval_condition_2_brut
 let expected_eval_condition_2 : pterm = N 2
 (*condition sur les listes*)
-let ex_eval_condition_list_1 : pterm = eval (Cond (PL (Cons (N 1, Empty)), N 1, N 2))
+let ex_eval_condition_list_1_brut : pterm = (Cond (PL (Cons (N 1, Empty)), N 1, N 2))
+let ex_eval_condition_list_1 : pterm = eval ex_eval_condition_list_1_brut
 let expected_eval_condition_list_1 : pterm = N 1
-let ex_eval_condition_list_2 : pterm = eval (Cond (PL Empty, N 1, N 2))
+let ex_eval_condition_list_2_brut : pterm = (Cond (PL Empty, N 1, N 2))
+let ex_eval_condition_list_2 : pterm = eval ex_eval_condition_list_2_brut
 let expected_eval_condition_list_2 : pterm = N 2
 (*list*)
 let ex_eval_list : pterm = eval (PL (Cons (Add (N 2, N 3) , Cons (Mult (N 0, N 1), Empty))))

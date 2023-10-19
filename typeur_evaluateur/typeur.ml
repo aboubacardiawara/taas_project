@@ -240,10 +240,10 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
   | Mult (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
       let eq2 : equa = genere_equa t2 Nat e in
       (ty, Nat)::(eq1 @ eq2)
-  | Cond (t1, t2, t3) -> let eq1 : equa = genere_equa t1 Nat e in
+  | Cond (_, t2, t3) ->
       let eq2 : equa = genere_equa t2 ty e in
       let eq3 : equa = genere_equa t3 ty e in
-      (eq1 @ eq2 @ eq3)
+      (eq2 @ eq3)
   | Let (x, e1, e2) -> let nv = nouvelle_var () in 
       let eq1 : equa = genere_equa e1 (Var nv) e in
       let eq2 : equa = genere_equa e2 ty ((x, Var nv)::e) in
