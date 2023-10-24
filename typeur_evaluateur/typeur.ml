@@ -13,8 +13,10 @@ type pterm =
   | Mult of pterm * pterm
   | Cond of pterm * pterm * pterm
   | Let of string * pterm * pterm
-
-
+  | Ref of pterm (*ex: Ref 23 *)
+  | Bang of pterm (*ex: !x *)
+  | Mut of pterm * pterm (*ex: e1 := e2 *)
+  | Punit (*type de retour des traits imperatifs ex: () *) 
 
 (* Types *) 
 type ptype = 
@@ -22,9 +24,6 @@ type ptype =
   | Arr of ptype * ptype 
   | Nat
   | PList of ptype
-  
-
-
 
 (*Primitives sur les listes*)
 let head (l : 'a plist) : 'a =
@@ -59,6 +58,10 @@ let rec print_term (t : pterm) : string =
     | Mult (t1, t2) -> "(" ^ (print_term t1) ^" * "^ (print_term t2) ^ ")"
     | Cond (t1, t2, t3) -> "(if " ^ (print_term t1) ^ " then " ^ (print_term t2) ^ " else " ^ (print_term t3) ^ ")"
     | PL l -> "[" ^ print_list l ^ "]"
+    | Ref p -> "(ref " ^ (print_term p) ^ ")"
+    | Bang p -> "!" ^ (print_term p)
+    | Mut (p1, p2) -> "(" ^ (print_term p1) ^ " := " ^ (print_term p2) ^ ")"
+    | Punit -> "unit"
     | Let (x, t1, t2) -> "(let "^ x ^" = " ^ (print_term t1) ^" in " ^ (print_term t2) ^")"
     and print_list (l : pterm plist) : string =
       match l with
@@ -111,6 +114,9 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Sub (p1, p2) -> Sub (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Mult (p1, p2) -> Mult (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Cond (p1, p2, p3) -> Cond (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env, alpha_conversion_aux p3 name_env)
+    | Ref p -> Ref (alpha_conversion_aux p name_env)
+    | Bang p -> Bang (alpha_conversion_aux p name_env)
+    | Mut (p1, p2) -> Mut (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Let (name, p1, p2) -> let (nv):string = nouvelle_var () in
       Let (nv, (alpha_conversion p1), (alpha_conversion_aux p2 ((name, nv)::name_env)))
     | PL l -> PL (alpha_conversion_list l name_env)
@@ -141,6 +147,10 @@ let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) =
   | Mult (m, n) -> Mult (substitution v new_p m, substitution v new_p n)
   | Cond (t1, t2, t3) -> Cond (substitution v new_p t1, substitution v new_p t2, substitution v new_p t3)
   | Let (s, t1, t2) -> Let (s, substitution v new_p t1, substitution v new_p t2)
+  | Ref p -> Ref (substitution v new_p p)
+  | Bang p -> Bang (substitution v new_p p)
+  | Punit -> Punit
+  | Mut (p1, p2) -> Mut (substitution v new_p p1, substitution v new_p p2)
   | PL l -> PL (substitution_list v new_p l)
       and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
         (match l with
@@ -181,6 +191,9 @@ let rec eval (p:pterm) : pterm =
   | Cond (PL Empty, ifterme, elseterme) -> elseterme
   | Cond (_, ifterme, elseterme) -> ifterme
   | Abs (s, ab) -> Abs (s, ab)
+  | Ref p -> Ref (eval p)
+  | Bang p -> eval p
+  | Mut (p1, p2) -> Punit
   | Let (s, p1, p2) -> let v = eval p1 in eval (substitution s v (alpha_conversion p2))
   and eval_list (l:pterm plist) : pterm plist =
         match l with
