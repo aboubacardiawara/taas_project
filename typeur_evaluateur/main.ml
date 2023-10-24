@@ -88,9 +88,13 @@ let test_type () =
   print_endline (print_term ex_eval_condition_list_1_brut);
   print_endline (inference ex_eval_condition_list_1_brut);
   print_endline (print_term (eval ex_eval_condition_list_1_brut));
+  print_endline "";
+
+  print_endline (print_term farouck);
+  print_endline (inference farouck);
   print_endline ""
   
 
 
  
-let _ = test ()
+let _ = test_type ()

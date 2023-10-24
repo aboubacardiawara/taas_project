@@ -1,7 +1,6 @@
 (*PList*)
 type 'a plist = Empty | Cons of 'a * 'a plist
 
-
 (* Termes *)
 type pterm = 
   | Var of string 
@@ -16,7 +15,8 @@ type pterm =
   | Let of string * pterm * pterm
 
 
-  (* Types *) 
+
+(* Types *) 
 type ptype = 
   | Var of string 
   | Arr of ptype * ptype 
@@ -187,7 +187,12 @@ let rec eval (p:pterm) : pterm =
         | Empty -> Empty
         | Cons (t, ts) -> Cons (eval t, eval_list ts)
 
-(* vérificateur d'égalité de termes *)
+(* vérificateur d'égalité de termes 
+Attention le resultat peut comporter des faux negatifs.
+Exe: (λx -> x) et (λy -> y) ont le mm comportement mais ne sont pas 
+reconnus comme tels par cette fonction.
+Ne pas l'utiliser en dehors de tests unitaires.
+*)
 let rec equals (p1:pterm) (p2:pterm) : bool =
   match p1, p2 with
   | Var v1, Var v2 -> v1 = v2
