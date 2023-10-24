@@ -92,6 +92,14 @@ let test_type () =
 
   print_endline (print_term farouck);
   print_endline (inference farouck);
+  print_endline "";
+
+  print_endline (print_term farouck2);
+  print_endline (inference farouck2);
+  print_endline "";
+
+  print_endline (print_term farouck3);
+  print_endline (inference farouck3);
   print_endline ""
   
 
