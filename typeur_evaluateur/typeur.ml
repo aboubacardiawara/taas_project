@@ -213,7 +213,12 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
     | Var s -> let new_val = read_in_memory s etat in eval_aux new_val etat
     | _ -> Bang e, etat
     )
-  | Mut (p1, p2) -> p, etat 
+  | Mut (p1, p2) -> let p1', etat' = eval_aux p1 etat in let p2', etat'' = eval_aux p2 etat' in 
+    (
+      match p1' with
+      | Var s -> Punit, (s, p2')::etat''
+      | _ -> Mut (p1', p2'), etat''
+    )
   | Let (s, p1, p2) -> let v, etat' = eval_aux p1 etat in (
     match v with
     | Ref e -> eval_aux p2 ((s, e)::etat')
