@@ -119,6 +119,9 @@ let expected_ex_eval_ref_return_unit : pterm = Punit
 (* let f = (func x -> x*x) in let x = ref 3 in f(!x+1) + 4 *)
 let ex_eval_ref_2 : pterm = eval (Let ("f", Abs ("x", Mult (Var "x", Var "x")), Let ("x", Ref (N 3), Add (App (Var "f", Add (Bang (Var "x"), N 1)), N 4))))
 let expected_eval_ref_2 : pterm = N 20
+(*let x=ref 2 in let y = ref (!x+1) in !y*2*)
+let ex_eval_ref_3 : pterm = eval (Let ("x", Ref (N 2), Let ("y", Ref (Add (Bang (Var "x"), N 1)), Mult (Bang (Var "y"), N 2))))
+let expected_eval_ref_3 : pterm = N 6
 (* let f = (func x -> let y = ref (!x) in !x*!y) in let x = ref 3 in f(!x+1) + 5 *)
-let ex_eval_ref_3 : pterm = eval (Let ("f", Abs ("x", Let ("y", Ref (Bang (Var "x")), Mult (Bang (Var "x"), Bang (Var "y")))), Let ("x", Ref (N 3), Add (App (Var "f", Add (Bang (Var "x"), N 1)), N 5))))
-let expected_eval_ref_3 : pterm = N 21
+let ex_eval_ref_4 : pterm = eval (Let ("f", Abs ("x", Let ("y", Ref (Bang (Var "x")), Mult (Bang (Var "x"), Bang (Var "y")))), Let ("x", Ref (N 3), Add (App (Var "f", Add (Bang (Var "x"), N 1)), N 5))))
+let expected_eval_ref_4 : pterm = N 21

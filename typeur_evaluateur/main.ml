@@ -114,4 +114,4 @@ let test_type () =
 
 
  
-let _ = test ()
+let _ = test_type(); test ()

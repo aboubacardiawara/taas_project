@@ -119,7 +119,7 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Bang p -> Bang (alpha_conversion_aux p name_env)
     | Mut (p1, p2) -> Mut (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Let (name, p1, p2) -> let (nv):string = nouvelle_var () in
-      Let (nv, (alpha_conversion p1), (alpha_conversion_aux p2 ((name, nv)::name_env)))
+      Let (nv, (alpha_conversion_aux p1 ((name, nv)::name_env)), (alpha_conversion_aux p2 ((name, nv)::name_env)))
     | PL l -> PL (alpha_conversion_list l name_env)
         and alpha_conversion_list (l:pterm plist) name_env = 
           match l with
@@ -185,7 +185,7 @@ let read_in_memory (s:string) (memory:etat_t) : pterm =
 let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) = 
   match p with
   | N n -> N n, etat
-  | Var a -> Var a, etat
+  | Var a -> read_in_memory a etat, etat
   | Add (m, n) -> let m', etat' = eval_aux m etat in let n', etat'' = eval_aux n etat' in 
     (match m', n' with
       | N a, N b -> N (a + b), etat''
@@ -215,14 +215,14 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
     )
   | Mut (p1, p2) -> let p1', etat' = eval_aux p1 etat in let p2', etat'' = eval_aux p2 etat' in 
     (
-      match p1' with
+      match p1 with
       | Var s -> Punit, (s, p2')::etat''
       | _ -> Mut (p1', p2'), etat''
     )
   | Let (s, p1, p2) -> let v, etat' = eval_aux p1 etat in (
     match v with
     | Ref e -> eval_aux p2 ((s, e)::etat')
-    | _ -> eval_aux (substitution s v (alpha_conversion p2)) etat'
+    | _ -> eval_aux (substitution s v p2) etat'
   )
   and eval_list (l:pterm plist) (etat:etat_t) : (pterm plist * etat_t) =
         match l with
@@ -232,7 +232,7 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
 
 
 let rec eval (p:pterm) : pterm = 
-  let (p', etat') : (pterm * etat_t) = eval_aux p [] in p'
+  let (p', etat') : (pterm * etat_t) = eval_aux (alpha_conversion p) [] in p'
 
 (* vérificateur d'égalité de termes 
 Attention le resultat peut comporter des faux negatifs.
