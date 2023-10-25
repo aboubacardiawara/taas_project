@@ -1,5 +1,6 @@
 (*PList*)
 type 'a plist = Empty | Cons of 'a * 'a plist
+open Printf
 
 (* Termes *)
 type pterm = 
@@ -173,46 +174,60 @@ type region_t = string
 type etat_t = (region_t * pterm) list
 
 
-let rec eval_aux (p:pterm) (etat:etat_t) : pterm = 
+let read_in_memory (s:string) (memory:etat_t) : pterm =
+  let rec aux (memory:etat_t) : pterm =
+    match memory with
+    | [] -> Var s
+    | (s', p)::q when s' = s -> p
+    | _::q -> aux q
+  in aux memory
+
+let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) = 
   match p with
-  | N n -> N n
-  | Var a -> Var a
-  | Add (m, n) -> let m' = eval_aux m etat in let n' = eval_aux n etat in 
+  | N n -> N n, etat
+  | Var a -> Var a, etat
+  | Add (m, n) -> let m', etat' = eval_aux m etat in let n', etat'' = eval_aux n etat' in 
     (match m', n' with
-      | N a, N b -> N (a + b)
-      | _, _ -> Add (m', n')
+      | N a, N b -> N (a + b), etat''
+      | _, _ -> Add (m', n'), etat''
     )
-  | Sub (m, n) -> let m' = eval_aux m etat in let n' = eval_aux n etat in
+  | Sub (m, n) -> let m', etat' = eval_aux m etat in let n', etat'' = eval_aux n etat' in
     (match m', n' with
-      | N a, N b -> N (a - b)
-      | _, _ -> Sub (m', n')
+      | N a, N b -> N (a - b), etat''
+      | _, _ -> Sub (m', n'), etat''
     )
-  | Mult (m, n) -> let m' = eval_aux m etat in let n' = eval_aux n etat in
+  | Mult (m, n) -> let m', etat' = eval_aux m etat in let n', etat'' = eval_aux n etat' in
     (match m', n' with
-      | N a, N b -> N (a * b)
-      | _, _ -> Mult (m', n')
+      | N a, N b -> N (a * b), etat''
+      | _, _ -> Mult (m', n'), etat''
     )
   | App (_, _) -> let res = beta_reduction p in eval_aux res etat
-  | PL l -> PL (eval_list l etat)
-  | Cond (N 0, ifterme, elseterme) -> elseterme
-  | Cond (PL Empty, ifterme, elseterme) -> elseterme
-  | Cond (_, ifterme, elseterme) -> ifterme
-  | Abs (s, ab) -> Abs (s, ab)
-  | Ref p -> Ref (eval_aux p etat)
+  | PL l -> let l', etat' = eval_list l etat in PL l', etat'
+  | Cond (N 0, ifterme, elseterme) -> elseterme, etat
+  | Cond (PL Empty, ifterme, elseterme) -> elseterme, etat
+  | Cond (_, ifterme, elseterme) -> ifterme, etat
+  | Abs (s, ab) -> Abs (s, ab), etat
+  | Ref p -> let p', etat' = eval_aux p etat in Ref p', etat'
   | Bang e -> 
     (match e with
-    | Ref e1 -> eval_aux e1 etat
-    | _ -> Bang e 
+    | Var s -> let new_val = read_in_memory s etat in eval_aux new_val etat
+    | _ -> Bang e, etat
     )
-  | Mut (p1, p2) -> Punit
-  | Let (s, p1, p2) -> let v = eval_aux p1 etat in eval_aux (substitution s v (alpha_conversion p2)) etat
-  and eval_list (l:pterm plist) (etat:etat_t) : pterm plist =
+  | Mut (p1, p2) -> p, etat 
+  | Let (s, p1, p2) -> let v, etat' = eval_aux p1 etat in (
+    match v with
+    | Ref e -> eval_aux p2 ((s, e)::etat')
+    | _ -> eval_aux (substitution s v (alpha_conversion p2)) etat'
+  )
+  and eval_list (l:pterm plist) (etat:etat_t) : (pterm plist * etat_t) =
         match l with
-        | Empty -> Empty
-        | Cons (t, ts) -> Cons (eval_aux t etat, eval_list ts etat)
+        | Empty -> Empty, etat
+        | Cons (t, ts) -> let t', etat' = eval_aux t etat in let ts', etat'' = eval_list ts etat' in
+          Cons (t', ts'), etat''
 
 
-let rec eval (p:pterm) : pterm = eval_aux p []
+let rec eval (p:pterm) : pterm = 
+  let (p', etat') : (pterm * etat_t) = eval_aux p [] in p'
 
 (* vérificateur d'égalité de termes 
 Attention le resultat peut comporter des faux negatifs.
