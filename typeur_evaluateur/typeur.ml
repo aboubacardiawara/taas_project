@@ -166,6 +166,8 @@ let rec beta_reduction (p:pterm) : pterm =
     )
   | _ -> p
 
+type eval_env = (string * pterm) list
+
 let rec eval (p:pterm) : pterm = 
   match p with
   | N n -> N n
@@ -192,7 +194,11 @@ let rec eval (p:pterm) : pterm =
   | Cond (_, ifterme, elseterme) -> ifterme
   | Abs (s, ab) -> Abs (s, ab)
   | Ref p -> Ref (eval p)
-  | Bang p -> eval p
+  | Bang e -> 
+    (match e with
+    | Ref e1 -> eval e1
+    | _ -> Bang e 
+    )
   | Mut (p1, p2) -> Punit
   | Let (s, p1, p2) -> let v = eval p1 in eval (substitution s v (alpha_conversion p2))
   and eval_list (l:pterm plist) : pterm plist =

@@ -12,7 +12,7 @@ let print_subs_question (p:pterm) (var:string) (q:pterm) : unit =
   print_endline ( "? " ^ var ^ " par " ^ (print_term q) ^ " dans " ^ (print_term p))
 
 let announce_test_case (desc:string) (p:pterm) (q:pterm) : unit =
-  print_endline ("- testcase: " ^ desc ^ "\n  fixture: " ^ (print_term p) ^ "  expected: " ^ (print_term q) ^ "\n")
+  print_endline ("- testcase: " ^ desc ^ "\n  actual: " ^ (print_term p) ^ "  expected: " ^ (print_term q) ^ "\n")
 
 let test () =
  print_endline "> Running tests";
@@ -60,7 +60,10 @@ let test () =
  announce_test_case "let x=2 in (λy -> y * x) 10" ex_eval_let_2 expected_eval_let_2;
  assert_equal_pterm ex_eval_let_2 expected_eval_let_2;
  announce_test_case "let x= (f x -> x) in (f y -> x)" ex_eval_let_3 expected_eval_let_3;
- assert_equal_pterm ex_eval_let_3 expected_eval_let_3
+ assert_equal_pterm ex_eval_let_3 expected_eval_let_3;
+ print_endline "========= evaluation sur les references =======";
+ announce_test_case "let x = ref 1 in !x + 3" ex_eval_ref_1 expected_eval_ref_1;
+ assert_equal_pterm ex_eval_ref_1 expected_eval_ref_1
 
 let test_type () =
   print_endline "INFERENCE DE TYPE";
@@ -105,4 +108,4 @@ let test_type () =
 
 
  
-let _ = test_type ()
+let _ = test ()

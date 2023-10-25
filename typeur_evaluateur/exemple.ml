@@ -109,3 +109,7 @@ let farouck : pterm = Abs ("x", Let ("y", Add (Var "x", N 1), App (Var "x", Var 
 let farouck2 : pterm = Abs ("x", Let ("y", Var "x", App (Var "x", Var "y")))
 (* fun x -> let y = x in y x*)
 let farouck3 : pterm = Abs ("x", Let ("y", Var "x", App (Var "y", Var "x")))
+(*Evaluation de traits imperatifs*)
+(*1. let x = ref 2 in !x + 3*)
+let ex_eval_ref_1 : pterm = eval (Let ("x", Ref (N 2), Add (Bang (Var "x"), N 3)))
+let expected_eval_ref_1 : pterm = N 5
