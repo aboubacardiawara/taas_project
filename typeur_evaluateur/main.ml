@@ -63,7 +63,9 @@ let test () =
  assert_equal_pterm ex_eval_let_3 expected_eval_let_3;
  print_endline "========= evaluation sur les references =======";
  announce_test_case "let x = ref 1 in !x + 3" ex_eval_ref_1 expected_eval_ref_1;
- assert_equal_pterm ex_eval_ref_1 expected_eval_ref_1
+ assert_equal_pterm ex_eval_ref_1 expected_eval_ref_1;
+ print_endline "let x = ref 0 in x := !x + 1 s'evalue en punit";
+ assert_equal_pterm ex_eval_ref_return_unit expected_ex_eval_ref_return_unit
 
 let test_type () =
   print_endline "INFERENCE DE TYPE";

@@ -113,3 +113,6 @@ let farouck3 : pterm = Abs ("x", Let ("y", Var "x", App (Var "y", Var "x")))
 (*1. let x = ref 2 in !x + 3*)
 let ex_eval_ref_1 : pterm = eval (Let ("x", Ref (N 2), Add (Bang (Var "x"), N 3)))
 let expected_eval_ref_1 : pterm = N 5
+(*. let x = ref 0 in x := !x + 1*)
+let ex_eval_ref_return_unit : pterm = eval (Let ("x", Ref (N 2), Mut (Var "x", Add (Bang (Var "x"), N 1))))
+let expected_ex_eval_ref_return_unit : pterm = Punit

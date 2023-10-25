@@ -168,43 +168,51 @@ let rec beta_reduction (p:pterm) : pterm =
 
 type eval_env = (string * pterm) list
 
-let rec eval (p:pterm) : pterm = 
+(*Traits imperatifs*)
+type region_t = string
+type etat_t = (region_t * pterm) list
+
+
+let rec eval_aux (p:pterm) (etat:etat_t) : pterm = 
   match p with
   | N n -> N n
   | Var a -> Var a
-  | Add (m, n) -> let m' = eval m in let n' = eval n in 
+  | Add (m, n) -> let m' = eval_aux m etat in let n' = eval_aux n etat in 
     (match m', n' with
       | N a, N b -> N (a + b)
       | _, _ -> Add (m', n')
     )
-  | Sub (m, n) -> let m' = eval m in let n' = eval n in
+  | Sub (m, n) -> let m' = eval_aux m etat in let n' = eval_aux n etat in
     (match m', n' with
       | N a, N b -> N (a - b)
       | _, _ -> Sub (m', n')
     )
-  | Mult (m, n) -> let m' = eval m in let n' = eval n in
+  | Mult (m, n) -> let m' = eval_aux m etat in let n' = eval_aux n etat in
     (match m', n' with
       | N a, N b -> N (a * b)
       | _, _ -> Mult (m', n')
     )
-  | App (_, _) -> let res = beta_reduction p in eval res
-  | PL l -> PL (eval_list l)
+  | App (_, _) -> let res = beta_reduction p in eval_aux res etat
+  | PL l -> PL (eval_list l etat)
   | Cond (N 0, ifterme, elseterme) -> elseterme
   | Cond (PL Empty, ifterme, elseterme) -> elseterme
   | Cond (_, ifterme, elseterme) -> ifterme
   | Abs (s, ab) -> Abs (s, ab)
-  | Ref p -> Ref (eval p)
+  | Ref p -> Ref (eval_aux p etat)
   | Bang e -> 
     (match e with
-    | Ref e1 -> eval e1
+    | Ref e1 -> eval_aux e1 etat
     | _ -> Bang e 
     )
   | Mut (p1, p2) -> Punit
-  | Let (s, p1, p2) -> let v = eval p1 in eval (substitution s v (alpha_conversion p2))
-  and eval_list (l:pterm plist) : pterm plist =
+  | Let (s, p1, p2) -> let v = eval_aux p1 etat in eval_aux (substitution s v (alpha_conversion p2)) etat
+  and eval_list (l:pterm plist) (etat:etat_t) : pterm plist =
         match l with
         | Empty -> Empty
-        | Cons (t, ts) -> Cons (eval t, eval_list ts)
+        | Cons (t, ts) -> Cons (eval_aux t etat, eval_list ts etat)
+
+
+let rec eval (p:pterm) : pterm = eval_aux p []
 
 (* vérificateur d'égalité de termes 
 Attention le resultat peut comporter des faux negatifs.
@@ -223,6 +231,7 @@ let rec equals (p1:pterm) (p2:pterm) : bool =
   | Sub (m1, n1), Sub (m2, n2) -> (equals m1 m2) && (equals n1 n2)
   | Mult (m1, n1), Mult (m2, n2) -> (equals m1 m2) && (equals n1 n2)
   | PL l1, PL l2 -> equals_list l1 l2
+  | Punit, Punit -> true
   | _, _ -> false
     and equals_list (l1:pterm plist) (l2:pterm plist) : bool =
       match l1, l2 with
