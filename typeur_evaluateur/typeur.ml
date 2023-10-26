@@ -215,6 +215,7 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
   | Cond (PL Empty, ifterme, elseterme) -> elseterme, etat
   | Cond (_, ifterme, elseterme) -> ifterme, etat
   | Abs (s, ab) -> Abs (s, ab), etat
+  | Punit -> Punit, etat
   | Ref p -> let p', etat' = eval_aux p etat in Ref p', etat'
   | Bang e -> 
     (match e with
