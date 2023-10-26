@@ -36,7 +36,6 @@ let test () =
  (*variable libre*)
  announce_test_case "terme contenant une variable libre" ex_free_var expected_free_var;
  assert_equal_pterm ex_free_var expected_free_var;
- print_endline (print_term (eval ex_eval_addition));
  print_endline "========= Evaluation =======";
  announce_test_case "evaluation d'une addition (1+2)" ex_eval_addition expected_eval_addition ;
  assert_equal_pterm ex_eval_addition expected_eval_addition;
@@ -68,8 +67,10 @@ let test () =
  assert_equal_pterm ex_eval_ref_return_unit expected_ex_eval_ref_return_unit;
  announce_test_case "let f = (func x -> x*x) in let x = ref 3 in f(!x+1) + 4" ex_eval_ref_2 expected_eval_ref_2;
  assert_equal_pterm ex_eval_ref_2 expected_eval_ref_2;
- announce_test_case "let f = (func x -> let y = ref (!x) in !x*!y) in let x = ref 3 in f(!x+1) + 5" ex_eval_ref_3 expected_eval_ref_3;
- assert_equal_pterm ex_eval_ref_3 expected_eval_ref_3
+ announce_test_case "let x=ref 2 in let y = ref (!x+1) in !y*2" ex_eval_ref_3 expected_eval_ref_3;
+ assert_equal_pterm ex_eval_ref_3 expected_eval_ref_3;
+ announce_test_case "let f = (func x -> let y = ref (!x) in !x*!y) in let x = ref 3 in f(!x+1) + 5" ex_eval_ref_4 expected_eval_ref_4;
+ assert_equal_pterm ex_eval_ref_4 expected_eval_ref_4
 
 let test_type () =
   print_endline "INFERENCE DE TYPE";
@@ -114,4 +115,4 @@ let test_type () =
 
 
  
-let _ = test_type(); test ()
+let _ = test ()

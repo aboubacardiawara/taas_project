@@ -173,6 +173,14 @@ type eval_env = (string * pterm) list
 type region_t = string
 type etat_t = (region_t * pterm) list
 
+(*debugage*)
+let affiche_str (l:etat_t) : unit =
+  let rec aux (l:etat_t) : unit =
+    match l with
+    | [] -> ()
+    | (s, p)::q -> print_string (s ^ " ---> " ^ (print_term p) ^ "\n"); aux q
+  in aux l
+(*debugage*)
 
 let read_in_memory (s:string) (memory:etat_t) : pterm =
   let rec aux (memory:etat_t) : pterm =
@@ -186,7 +194,7 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
   match p with
   | N n -> N n, etat
   | Var a -> read_in_memory a etat, etat
-  | Add (m, n) -> let m', etat' = eval_aux m etat in let n', etat'' = eval_aux n etat' in 
+  | Add (m, n) -> let m', etat' = eval_aux m etat in let n', etat'' = eval_aux n etat in 
     (match m', n' with
       | N a, N b -> N (a + b), etat''
       | _, _ -> Add (m', n'), etat''
@@ -196,7 +204,7 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
       | N a, N b -> N (a - b), etat''
       | _, _ -> Sub (m', n'), etat''
     )
-  | Mult (m, n) -> let m', etat' = eval_aux m etat in let n', etat'' = eval_aux n etat' in
+  | Mult (m, n) -> let m', etat' = eval_aux m etat in let n', etat'' = eval_aux n etat in
     (match m', n' with
       | N a, N b -> N (a * b), etat''
       | _, _ -> Mult (m', n'), etat''
