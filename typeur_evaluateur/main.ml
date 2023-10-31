@@ -119,7 +119,12 @@ let test_type () =
 
   print_endline (print_term farouck3);
   print_endline (inference farouck3);
+  print_endline "";
+  
+  print_endline (print_term ex_typage_ref_1);
+  print_endline (inference ex_typage_ref_1);
   print_endline ""
+  
   
 
 
