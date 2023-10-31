@@ -14,7 +14,7 @@ let print_subs_question (p:pterm) (var:string) (q:pterm) : unit =
 let announce_test_case (desc:string) (p:pterm) (q:pterm) : unit =
   print_endline ("- testcase: " ^ desc ^ "\n  actual: " ^ (print_term p) ^ "  expected: " ^ (print_term q) ^ "\n")
 
-let test () =
+let test_eval () =
  print_endline "> Running tests";
  print_endline "========= Substitution ========";
  announce_test_case "substitution dans l'identite" ex_substitution_1 expected_substitution_1;
@@ -85,10 +85,19 @@ let test_type () =
   print_endline (print_term (eval ex_typage_let_1));
   print_endline "";
 
+  print_endline (print_term ex_typage_list_3);
+  print_endline (inference ex_typage_list_3);
+  print_endline "";
+
+  print_endline (print_term ex_typage_list_4);
+  print_endline (inference ex_typage_list_4);
+  print_endline "";
+
   print_endline (print_term (ex_typage_let_2));
   print_endline (inference ex_typage_let_2);
   print_endline (print_term (eval ex_typage_let_2));
   print_endline "";
+  
 
   print_endline (print_term ex_eval_condition_1_brut);
   print_endline (inference ex_eval_condition_1_brut);
@@ -115,4 +124,4 @@ let test_type () =
 
 
  
-let _ = test ()
+let _ = test_type ()

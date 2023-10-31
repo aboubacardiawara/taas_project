@@ -25,6 +25,8 @@ type ptype =
   | Arr of ptype * ptype 
   | Nat
   | PList of ptype
+  | Punit
+
 
 (*Primitives sur les listes*)
 let head (l : 'a plist) : 'a =
@@ -77,6 +79,7 @@ let rec print_type (t : ptype) : string =
   | Arr (t1, t2) -> "(" ^ (print_type t1) ^" -> "^ (print_type t2) ^")"
   | Nat -> "Nat" 
   | PList l -> (print_type l) ^ " PList"
+  | Punit -> "unit"
 
 (* générateur de noms frais de variables de types *)
 let compteur_var : int ref = ref 0                    
@@ -118,6 +121,7 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Ref p -> Ref (alpha_conversion_aux p name_env)
     | Bang p -> Bang (alpha_conversion_aux p name_env)
     | Mut (p1, p2) -> Mut (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
+    | Punit -> Punit
     | Let (name, p1, p2) -> let (nv):string = nouvelle_var () in
       Let (nv, (alpha_conversion_aux p1 ((name, nv)::name_env)), (alpha_conversion_aux p2 ((name, nv)::name_env)))
     | PL l -> PL (alpha_conversion_list l name_env)
@@ -275,6 +279,7 @@ let rec substitue_type (t : ptype) (v : string) (t0 : ptype) : ptype =
   | Var v2 -> Var v2
   | Arr (t1, t2) -> Arr (substitue_type t1 v t0, substitue_type t2 v t0) 
   | Nat -> Nat 
+  | Punit -> Punit
   | PList t -> PList (substitue_type t v t0)
 
 (* remplace une variable par un type dans une liste d'équations*)
@@ -302,19 +307,26 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
   | Mult (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
       let eq2 : equa = genere_equa t2 Nat e in
       (ty, Nat)::(eq1 @ eq2)
-  | Cond (_, t2, t3) ->
+  | Cond (PL l, t2, t3) -> 
+      let eq1 : equa = let nv :string = nouvelle_var () in genere_equa (PL l) (Var nv) e in
       let eq2 : equa = genere_equa t2 ty e in
       let eq3 : equa = genere_equa t3 ty e in
-      (eq2 @ eq3)
+      eq1 @ eq2 @ eq3
+  | Cond (N n, t2, t3) ->
+      let eq2 : equa = genere_equa t2 ty e in
+      let eq3 : equa = genere_equa t3 ty e in
+      eq2 @ eq3
   | Let (x, e1, e2) -> let nv = nouvelle_var () in 
       let eq1 : equa = genere_equa e1 (Var nv) e in
       let eq2 : equa = genere_equa e2 ty ((x, Var nv)::e) in
       eq1 @ eq2 
+  | Punit -> [(ty, Punit)]
   | PL l -> match l with
       Empty -> [(ty, PList (Var (nouvelle_var ())))]
-      | Cons (t, _) -> let nv = Var (nouvelle_var ()) in 
-        (ty, PList nv) :: (genere_equa t (nv) e)
-        
+      | Cons (head, tail) -> let nv = Var (nouvelle_var ()) in 
+        let equa_head = genere_equa head nv e in
+        let equa_tail = genere_equa (PL tail) (PList nv) e in
+        (ty, PList nv) :: equa_head @ equa_tail
   
 
       
@@ -367,8 +379,19 @@ let rec unification (e : equa_zip) (but : string) : ptype =
   | (e1, (Nat, t3)::e2) -> raise (Echec_unif ("type entier non-unifiable avec "^(print_type t3)))     
     (* types à droite pas à gauche : échec *)
   | (e1, (t3, Nat)::e2) -> raise (Echec_unif ("type entier non-unifiable avec "^(print_type t3)))
-    (*deux listes, *)
+    (*type liste des deux côtés *)
   | (e1, (PList t1, PList t2)::e2) -> unification (e1, (t1, t2)::e2) but
+    (*type liste à gauche pas à droite*)
+  | (e1, (PList t1, t2)::e2) -> raise (Echec_unif ("type liste non-unifiable avec "^(print_type t2)))
+    (*type liste à droite pas à gauche*)
+  | (e1, (t1, PList t2)::e2) -> raise (Echec_unif ("type liste non-unifiable avec "^(print_type t1)))
+    (*type unit des deux côtés*)
+  | (e1, (Punit, Punit)::e2) -> unification (e1, e2) but
+    (*type unit à gauche pas à droite*)
+  | (e1, (Punit, t2)::e2) -> raise (Echec_unif ("type unit non-unifiable avec "^(print_type t2)))
+    (*type unit à droite pas à gauche*)
+  | (e1, (t1, Punit)::e2) -> raise (Echec_unif ("type unit non-unifiable avec "^(print_type t1)))
+    (*type var des deux côtés*)
                                       
 (* enchaine generation d'equation et unification *)                                   
 let inference (t : pterm) : string =
