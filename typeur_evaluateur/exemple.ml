@@ -132,3 +132,9 @@ let expected_eval_ref_3 : pterm = N 6
 (* let f = (func x -> let y = ref (!x) in !x*!y) in let x = ref 4 in f(x) + 5 *)
 let ex_eval_ref_4 : pterm = eval (Let ("f", Abs ("x", Let ("y", Ref (Bang (Var "x")), Mult (Bang (Var "x"), Bang (Var "y")))), Let ("x", Ref (N 4), Add (App (Var "f", Var "x"), N 5))))
 let expected_eval_ref_4 : pterm = N 21
+(*f:x -> x := !x+1*)
+let ex_typage_ref_2 : pterm = Abs ("x", Mut (Var "x", Add (Bang (Var "x"), N 1)))
+(*let x = ref 3*)
+let ex_typage_ref_3 : pterm = Let ("x", Ref (N 3), Var "x")
+(*let f:x -> x := !x + 3 in f(2)*)
+let ex_typage_ref_5 : pterm = (Let ("f", Abs ("x", Mut (Var "x", Add (Bang (Var "x"), N 3))), App (Var "f", N 2)))

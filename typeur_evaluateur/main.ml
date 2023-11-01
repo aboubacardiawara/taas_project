@@ -123,10 +123,18 @@ let test_type () =
   
   print_endline (print_term ex_typage_ref_1);
   print_endline (inference ex_typage_ref_1);
+  print_endline "";
+  
+  print_endline (print_term ex_typage_ref_2);
+  print_endline (inference ex_typage_ref_2);
+  print_endline "";
+
+  print_endline (print_term ex_typage_ref_3);
+  print_endline (inference ex_typage_ref_3);
+  print_endline "";
+
+  print_endline (print_term ex_typage_ref_5);
+  print_endline (inference ex_typage_ref_5);
   print_endline ""
   
-  
-
-
- 
 let _ = test_type ()

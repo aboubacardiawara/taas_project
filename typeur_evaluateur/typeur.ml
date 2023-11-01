@@ -26,6 +26,7 @@ type ptype =
   | Nat
   | PList of ptype
   | TPunit
+  | TRef of ptype
 
 
 (*Primitives sur les listes*)
@@ -80,6 +81,7 @@ let rec print_type (t : ptype) : string =
   | Nat -> "Nat" 
   | PList l -> (print_type l) ^ " PList"
   | TPunit -> "unit"
+  | TRef t -> "ref " ^ (print_type t)
 
 (* générateur de noms frais de variables de types *)
 let compteur_var : int ref = ref 0                    
@@ -279,6 +281,7 @@ let rec substitue_type (t : ptype) (v : string) (t0 : ptype) : ptype =
   | Arr (t1, t2) -> Arr (substitue_type t1 v t0, substitue_type t2 v t0) 
   | Nat -> Nat 
   | TPunit -> TPunit
+  | TRef t -> TRef (substitue_type t v t0)
   | PList t -> PList (substitue_type t v t0)
 
 (* remplace une variable par un type dans une liste d'équations*)
@@ -321,9 +324,7 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
       let eq2 : equa = genere_equa e2 ty ((x, Var nv)::e) in
       eq1 @ eq2 
   | Punit -> [(ty, TPunit)]
-  | Ref p -> let nv = nouvelle_var () in
-      let eq1 : equa = genere_equa p (Var nv) e in
-      (ty, (Var nv))::eq1
+  | Ref p -> let p_type = Var (nouvelle_var ()) in (ty, TRef p_type) :: (genere_equa p p_type e)
   | Mut (p1, p2) -> let nv = nouvelle_var () in
      (ty,  TPunit)::(genere_equa p1 (Var nv) e) @ (genere_equa p2 (Var nv) e)
   | Bang p -> let nv = nouvelle_var () in
@@ -399,7 +400,9 @@ let rec unification (e : equa_zip) (but : string) : ptype =
   | (e1, (TPunit, t2)::e2) -> raise (Echec_unif ("type unit non-unifiable avec "^(print_type t2)))
     (*type unit à droite pas à gauche*)
   | (e1, (t1, TPunit)::e2) -> raise (Echec_unif ("type unit non-unifiable avec "^(print_type t1)))
-    (*type var des deux côtés*)
+  | (e1, (TRef t1, TRef t2)::e2) -> unification (e1, (t1, t2)::e2) but
+  | (e1, (TRef t1, t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t2)))
+  | (e1, (t1, TRef t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t1)))
                                       
 (* enchaine generation d'equation et unification *)                                   
 let inference (t : pterm) : string =
