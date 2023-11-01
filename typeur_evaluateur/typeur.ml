@@ -319,9 +319,9 @@ let rec genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
       let eq3 : equa = genere_equa t3 ty e in
       eq2 @ eq3
   | Cond (_, t2, t3) -> (genere_equa t2 ty e) @ (genere_equa t3 ty e) (*split cond for nat and list*)
-  | Let (x, e1, e2) -> let nv = nouvelle_var () in 
-      let eq1 : equa = genere_equa e1 (Var nv) e in
-      let eq2 : equa = genere_equa e2 ty ((x, Var nv)::e) in
+  | Let (x, e1, e2) -> let nv = Var (nouvelle_var ()) in 
+      let eq1 : equa = genere_equa e1 nv e in
+      let eq2 : equa = genere_equa e2 ty ((x, nv)::e) in
       eq1 @ eq2 
   | Punit -> [(ty, TPunit)]
   | Ref p -> let p_type = Var (nouvelle_var ()) in (ty, TRef p_type) :: (genere_equa p p_type e)
@@ -404,6 +404,20 @@ let rec unification (e : equa_zip) (but : string) : ptype =
   | (e1, (TRef t1, t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t2)))
   | (e1, (t1, TRef t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t1)))
                                       
+
+(*fonction de typage*)
+let typage (t:pterm) : ptype = 
+  let t' = alpha_conversion t in
+  let e : equa_zip = ([], genere_equa t' (Var "but") []) in
+  try (unification e "but") with Echec_unif bla -> raise (Echec_unif bla)
+
+(*utilise la fonction typage*)
+let inference2 (p:pterm) : string = 
+  try (let type_of_p = typage p in 
+    (print_term p) ^ " ***TYPABLE*** avec le type " ^ (print_type type_of_p)
+  ) with Echec_unif bla -> (print_term p) ^ " ***PAS TYPABLE*** : " ^ bla
+
+
 (* enchaine generation d'equation et unification *)                                   
 let inference (t : pterm) : string =
   let e : equa_zip = ([], genere_equa t (Var "but") []) in
