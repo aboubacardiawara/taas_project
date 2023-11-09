@@ -121,7 +121,7 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Mult (p1, p2) -> Mult (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Cond (p1, p2, p3) -> Cond (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env, alpha_conversion_aux p3 name_env)
     | Ref p -> Ref (alpha_conversion_aux p name_env)
-    | Bang p -> Bang (alpha_conversion_aux p name_env)
+    | Bang p -> Bang (alpha_conversion_aux p name_env) 
     | Mut (p1, p2) -> Mut (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Punit -> Punit
     | Let (name, p1, p2) -> let (nv):string = nouvelle_var () in
@@ -224,6 +224,7 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
   | Punit -> Punit, etat
   | Ref p -> let p', etat' = eval_aux p etat in Ref p', etat'
   | Bang e -> (match e with
+    | Bang (Ref v) -> v, etat
     | Var s -> let new_val = read_in_memory s etat in eval_aux new_val etat
     | _ -> Bang e, etat
     )

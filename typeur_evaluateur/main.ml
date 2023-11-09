@@ -70,7 +70,12 @@ let test_eval () =
  announce_test_case "let x=ref 2 in let y = ref (!x+1) in !y*2" ex_eval_ref_3 expected_eval_ref_3;
  assert_equal_pterm ex_eval_ref_3 expected_eval_ref_3;
  announce_test_case "let f = (func x -> let y = ref (!x) in !x*!y) in let x = ref 3 in f(!x+1) + 5" ex_eval_ref_4 expected_eval_ref_4;
- assert_equal_pterm ex_eval_ref_4 expected_eval_ref_4
+ assert_equal_pterm ex_eval_ref_4 expected_eval_ref_4;
+ announce_test_case "let f(x) = (let y := !x + 3 in !y) in let f(ref 2)";
+ print_endline (print_term (eval ex_typage_ref_5));
+ assert_equal_pterm ex_typage_ref_5 expected_ex_typage_ref_5
+
+
 
 let test_type () =
   print_endline "INFERENCE DE TYPE";
@@ -87,6 +92,10 @@ let test_type () =
 
   print_endline (print_term ex_typage_list_3);
   print_endline (inference ex_typage_list_3);
+  print_endline "";
+  
+  print_endline (print_term ex_list_vide);
+  print_endline (inference ex_list_vide);
   print_endline "";
 
   print_endline (print_term ex_typage_list_4);
@@ -127,14 +136,19 @@ let test_type () =
   
   print_endline (print_term ex_typage_ref_2);
   print_endline (inference ex_typage_ref_2);
+  print_endline (print_term (eval ex_typage_ref_2));
   print_endline "";
 
   print_endline (print_term ex_typage_ref_3);
   print_endline (inference ex_typage_ref_3);
   print_endline "";
 
+  print_endline (print_term ex_typage_ref_4);
+  print_endline (inference ex_typage_ref_4);
+  print_endline "";
+
   print_endline (print_term ex_typage_ref_5);
   print_endline (inference ex_typage_ref_5);
   print_endline ""
   
-let _ = test_type ()
+let _ = test_eval ()
