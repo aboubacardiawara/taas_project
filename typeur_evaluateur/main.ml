@@ -71,9 +71,11 @@ let test_eval () =
  assert_equal_pterm ex_eval_ref_3 expected_eval_ref_3;
  announce_test_case "let f = (func x -> let y = ref (!x) in !x*!y) in let x = ref 3 in f(!x+1) + 5" ex_eval_ref_4 expected_eval_ref_4;
  assert_equal_pterm ex_eval_ref_4 expected_eval_ref_4;
- announce_test_case "let f(x) = (let y := !x + 3 in !y) in let f(ref 2)";
- print_endline (print_term (eval ex_typage_ref_5));
- assert_equal_pterm ex_typage_ref_5 expected_ex_typage_ref_5
+ announce_test_case "(λx -> (!x + 3)) (ref 2)" eval_ex_typage_ref_5_0 expected_ex_typage_ref_5_0;
+ assert_equal_pterm eval_ex_typage_ref_5_0 expected_ex_typage_ref_5_0;
+ announce_test_case "let f(x) = (let y := !x + 3 in !y) in let f(ref 2)" eval_ex_typage_ref_5_0 expected_ex_typage_ref_5;
+ assert_equal_pterm eval_ex_typage_ref_5 expected_ex_typage_ref_5;
+ print_endline "fin test evaluation"
 
 
 

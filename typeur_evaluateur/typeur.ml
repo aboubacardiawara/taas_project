@@ -224,7 +224,7 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
   | Punit -> Punit, etat
   | Ref p -> let p', etat' = eval_aux p etat in Ref p', etat'
   | Bang e -> (match e with
-    | Bang (Ref v) -> v, etat
+    | Ref v -> v, etat
     | Var s -> let new_val = read_in_memory s etat in eval_aux new_val etat
     | _ -> Bang e, etat
     )
@@ -248,6 +248,7 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
 
 let rec eval (p:pterm) : pterm = 
   let (p', etat') : (pterm * etat_t) = eval_aux (alpha_conversion p) [] in p'
+
 
 (* vérificateur d'égalité de termes 
 Attention le resultat peut comporter des faux negatifs.

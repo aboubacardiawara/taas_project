@@ -138,6 +138,12 @@ let ex_typage_ref_2 : pterm = Abs ("x", Mut (Var "x", Add (Bang (Var "x"), N 1))
 let ex_typage_ref_3 : pterm = Let ("x", Ref (N 3), Var "x")
 (*let f(x) = (let y := !x + 3 in y) in let f(ref 2) *)
 let ex_typage_ref_4 : pterm = Let ("f", Abs ("x", Let ("y", Ref (Add (Bang (Var "x"), N 3)), Bang (Var "y"))), App (Var "f", Ref (N 2)))
-(*let f(x) = (let y := !x + 3 in !y) in let f(ref 2)*)
-let ex_typage_ref_5 : pterm = Let ("f", Abs ("x", Let ("y", Ref (Add (Bang (Var "x"), N 3)), Var "y")), App (Var "f", Ref (N 2)))
-let expected_ex_typage_ref_5 : pterm = Ref (N 5)
+(*let f= \x -> !x+3 in let f(ref 2)*)
+(* let ex_typage_ref_5_0: (λx -> (!x + 3)) (ref 2)*)
+let ex_typage_ref_5_0 : pterm = App (Abs ("x", Add (Bang (Var "x"), N 3)), Ref (N 2))
+let eval_ex_typage_ref_5_0 : pterm = eval ex_typage_ref_5_0
+let expected_ex_typage_ref_5_0 : pterm = N 5
+(* let ex_typage_ref_5 : pterm = Let ("f", Abs ("x", Add (Bang (Var "x"), N 3)), App (Var "f", Ref (N 2))) *)
+let ex_typage_ref_5 : pterm = Let ("f", Abs ("x", Add (Bang (Var "x"), N 3)), App (Var "f", Ref (N 2)))
+let eval_ex_typage_ref_5 : pterm = eval ex_typage_ref_5
+let expected_ex_typage_ref_5 : pterm = N 5
