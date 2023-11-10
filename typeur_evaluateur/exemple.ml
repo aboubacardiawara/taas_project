@@ -101,44 +101,60 @@ let ex_eval_let_3 : pterm = eval (Let ("x", Abs ("x", Var "x"), Abs ("y", Var "x
 let expected_eval_let_3 : pterm = Abs ("y", Abs ("x", Var "x"))
 (*TYPAGE: let x=4 in (func x -> x) *)
 let ex_typage_let_1 : pterm = Let ("x", N 4, Abs ("x", Var "x"))
+let ex_typage_let_1_et : string = "Nat -> Nat"
+(*TYPAGE: let x=4 in (func y -> x) *)
 let ex_typage_let_2 : pterm = Let ("x", N 4, Abs ("y", Var "x"))
+let ex_typage_let_2_et : string = "(v a) -> Nat"
 (*Typage [1, 3, 4]*)
 let ex_typage_list_3 : pterm = PL (Cons (N 1, Cons (N 3, Cons (N 4, Empty))))
+let ex_typage_list_3_et : string = "List Nat"
 (*Typage [1, 3, [2]]*)
 let ex_typage_list_4 : pterm = PL (Cons (N 1, Cons (N 3, Cons (PL (Cons (N 2, Empty)), Empty))))
+let ex_typage_list_4_et : string = "!! Pas typable"
 (*Typage let x = ref 2 in x := 3*)
 let ex_typage_ref_1 : pterm = Let ("x", Ref (N 2), Mut (Var "x", N 3))
+let ex_typage_ref_1_et : string = "Unit"
 
 (*Farouck *)
 (* fun x -> let y = x + 1 in x y*)
 let farouck : pterm = Abs ("x", Let ("y", Add (Var "x", N 1), App (Var "x", Var "y")))
+let farouck_et : string = "!! Pas typable"
 (* fun x -> let y = x in x y*)
 let farouck2 : pterm = Abs ("x", Let ("y", Var "x", App (Var "x", Var "y")))
+let farouck2_et : string = "!! Pas typable"
 (* fun x -> let y = x in y x*)
 let farouck3 : pterm = Abs ("x", Let ("y", Var "x", App (Var "y", Var "x")))
+let farouck3_et : string = "!! Pas typable"
 (*Evaluation de traits imperatifs*)
 (*1. let x = ref 2 in !x + 3*)
 let ex_eval_ref_1 : pterm = eval (Let ("x", Ref (N 2), Add (Bang (Var "x"), N 3)))
 let expected_eval_ref_1 : pterm = N 5
+let ex_eval_ref_1_et : string = "Nat"
 (*. let x = ref 0 in x := !x + 1*)
 let ex_eval_ref_return_unit : pterm = eval (Let ("x", Ref (N 2), Mut (Var "x", Add (Bang (Var "x"), N 1))))
 let expected_ex_eval_ref_return_unit : pterm = Punit
+let ex_eval_ref_return_unit_et : string = "Unit"
 (* let f = (func x -> x*x) in let x = ref 3 in f(!x+1) + 4 *)
 let ex_eval_ref_2 : pterm = eval (Let ("f", Abs ("x", Mult (Var "x", Var "x")), Let ("x", Ref (N 3), Add (App (Var "f", Add (Bang (Var "x"), N 1)), N 4))))
 let expected_eval_ref_2 : pterm = N 20
+let ex_eval_ref_2_et : string = "Nat"
 (*let x=ref 2 in let y = ref (!x+1) in !y*2*)
 let ex_eval_ref_3 : pterm = eval (Let ("x", Ref (N 2), Let ("y", Ref (Add (Bang (Var "x"), N 1)), Mult (Bang (Var "y"), N 2))))
 let expected_eval_ref_3 : pterm = N 6
+let ex_eval_ref_3_et : string = "Nat"
 (* let f = (func x -> let y = ref (!x) in !x*!y) in let x = ref 4 in f(x) + 5 *)
 let ex_eval_ref_4 : pterm = eval (Let ("f", Abs ("x", Let ("y", Ref (Bang (Var "x")), Mult (Bang (Var "x"), Bang (Var "y")))), Let ("x", Ref (N 4), Add (App (Var "f", Var "x"), N 5))))
 let expected_eval_ref_4 : pterm = N 21
+let ex_eval_ref_4_et : string = "Nat"
 (*f:x -> x := !x+1*)
 let ex_typage_ref_2 : pterm = Abs ("x", Mut (Var "x", Add (Bang (Var "x"), N 1)))
-(*let x = ref 3*)
+let ex_typage_ref_2_et : string = "(Nat ref) -> Unit"
+(*let x = ref 3 in x*)
 let ex_typage_ref_3 : pterm = Let ("x", Ref (N 3), Var "x")
+let ex_typage_ref_3_et : string = "Nat ref"
 (*let f(x) = (let y := !x + 3 in y) in let f(ref 2) *)
 let ex_typage_ref_4 : pterm = Let ("f", Abs ("x", Let ("y", Ref (Add (Bang (Var "x"), N 3)), Bang (Var "y"))), App (Var "f", Ref (N 2)))
-(*let f= \x -> !x+3 in let f(ref 2)*)
+let ex_typage_ref_4_et : string = "ref Nat"
 (* let ex_typage_ref_5_0: (λx -> (!x + 3)) (ref 2)*)
 let ex_typage_ref_5_0 : pterm = App (Abs ("x", Add (Bang (Var "x"), N 3)), Ref (N 2))
 let eval_ex_typage_ref_5_0 : pterm = eval ex_typage_ref_5_0
@@ -147,3 +163,4 @@ let expected_ex_typage_ref_5_0 : pterm = N 5
 let ex_typage_ref_5 : pterm = Let ("f", Abs ("x", Add (Bang (Var "x"), N 3)), App (Var "f", Ref (N 2)))
 let eval_ex_typage_ref_5 : pterm = eval ex_typage_ref_5
 let expected_ex_typage_ref_5 : pterm = N 5
+let ex_typage_ref_5_et : string = "Nat"

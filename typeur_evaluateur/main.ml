@@ -79,6 +79,9 @@ let test_eval () =
 
 
 
+let annouce_infer_test_case (expected_type:string) (p:pterm) : unit =
+  print_endline (print_term p ^ "\n  > expected type: " ^ expected_type ^ "\n  > actual type: " ^ (inference2 p) ^ "\n\n") 
+
 let test_type () =
   print_endline "INFERENCE DE TYPE";
   print_endline ("sur les let");
@@ -149,8 +152,7 @@ let test_type () =
   print_endline (inference ex_typage_ref_4);
   print_endline "";
 
-  print_endline (print_term ex_typage_ref_5);
-  print_endline (inference ex_typage_ref_5);
-  print_endline ""
+  annouce_infer_test_case ex_typage_ref_5_et ex_typage_ref_5;
+  annouce_infer_test_case ex_typage_ref_5_et ex_typage_ref_5
   
-let _ = test_eval ()
+let _ = test_type ()

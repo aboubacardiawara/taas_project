@@ -424,8 +424,8 @@ let rec typage (t:pterm) : ptype  =
 (*utilise la fonction typage*)
 let inference2 (p:pterm) : string = 
   try (let type_of_p = typage p in 
-    (print_term p) ^ " ***TYPABLE*** avec le type " ^ (print_type type_of_p)
-  ) with Echec_unif bla -> (print_term p) ^ " ***PAS TYPABLE*** : " ^ bla
+    " ***TYPABLE*** avec le type " ^ (print_type type_of_p)
+  ) with Echec_unif bla -> " ***PAS TYPABLE*** : " ^ bla
 
 
 (* enchaine generation d'equation et unification *)                                   
