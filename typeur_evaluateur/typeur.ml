@@ -2,6 +2,9 @@
 type 'a plist = Empty | Cons of 'a * 'a plist
 open Printf
 
+
+exception EvaluationException of string
+
 (* Termes *)
 type pterm = 
   | Var of string 
@@ -11,6 +14,8 @@ type pterm =
   | Add of pterm * pterm 
   | Sub of pterm * pterm
   | PL of pterm plist
+  | Head of pterm
+  | Tail of pterm
   | Mult of pterm * pterm
   | CondNat of pterm * pterm * pterm
   | CondList of pterm * pterm * pterm
@@ -68,6 +73,8 @@ let rec print_term (t : pterm) : string =
     | Bang p -> "!" ^ (print_term p)
     | Mut (p1, p2) -> "(" ^ (print_term p1) ^ " := " ^ (print_term p2) ^ ")"
     | Punit -> "unit"
+    | Head l -> "(head " ^ (print_term l) ^ ")"
+    | Tail l -> "(tail " ^ (print_term l) ^ ")"
     | Let (x, t1, t2) -> "(let "^ x ^" = " ^ (print_term t1) ^" in " ^ (print_term t2) ^")"
     and print_list (l : pterm plist) : string =
       match l with
@@ -127,6 +134,8 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Bang p -> Bang (alpha_conversion_aux p name_env) 
     | Mut (p1, p2) -> Mut (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Punit -> Punit
+    | Head p -> Head (alpha_conversion_aux p name_env)
+    | Tail p -> Tail (alpha_conversion_aux p name_env)
     | Let (name, p1, p2) -> let (nv):string = nouvelle_var () in
       Let (nv, (alpha_conversion_aux p1 ((name, nv)::name_env)), (alpha_conversion_aux p2 ((name, nv)::name_env)))
     | PL l -> PL (alpha_conversion_list l name_env)
@@ -161,6 +170,8 @@ let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) =
   | Ref p -> Ref (substitution v new_p p)
   | Bang p -> Bang (substitution v new_p p)
   | Punit -> Punit
+  | Head p -> Head (substitution v new_p p)
+  | Tail p -> Tail (substitution v new_p p)
   | Mut (p1, p2) -> Mut (substitution v new_p p1, substitution v new_p p2)
   | PL l -> PL (substitution_list v new_p l)
       and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
@@ -236,6 +247,18 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
   | Abs (s, ab) -> Abs (s, ab), etat
   | Punit -> Punit, etat
   | Ref p -> let p', etat' = eval_aux p etat in Ref p', etat'
+  | Head l -> let l', etat' = eval_aux l etat in (
+    match l' with
+    | PL Empty -> raise (EvaluationException "head d'une liste vide")
+    | PL (Cons (t, ts)) -> t, etat'
+    | _ -> Head l', etat'
+  )
+  | Tail l -> let l', etat' = eval_aux l etat in (
+    match l' with
+    | PL Empty -> raise (EvaluationException "tail d'une liste vide")
+    | PL (Cons (t, ts)) -> PL ts, etat'
+    | _ -> Tail l', etat'
+  )
   | Bang e -> (match e with
     | Ref v -> v, etat
     | Var s -> let new_val = read_in_memory s etat in eval_aux new_val etat
@@ -281,6 +304,8 @@ let rec equals (p1:pterm) (p2:pterm) : bool =
   | Mult (m1, n1), Mult (m2, n2) -> (equals m1 m2) && (equals n1 n2)
   | PL l1, PL l2 -> equals_list l1 l2
   | Punit, Punit -> true
+  | Head e1, Head e2 -> equals e1 e2
+  | Tail e1, Tail e2 -> equals e1 e2
   | _, _ -> false
     and equals_list (l1:pterm plist) (l2:pterm plist) : bool =
       match l1, l2 with
@@ -303,7 +328,7 @@ let rec substitue_type (t : ptype) (v : string) (t0 : ptype) : ptype =
 let substitue_type_partout (e : equa) (v : string) (t0 : ptype) : equa =
   List.map (fun (x, y) -> (substitue_type x v t0, substitue_type y v t0)) e
 
-exception Echec_unif of string      
+exception Echec_unif of string    
 
 (* zipper d'une liste d'équations *)
 type equa_zip = equa * equa
@@ -425,6 +450,12 @@ let rec typage (t:pterm) : ptype  =
         | Bang p -> let nv = nouvelle_var () in
           let equa_p = genere_equa p (TRef (Var nv)) e in
           (ty, Var nv) :: equa_p
+        | Head p -> let nv = nouvelle_var () in
+          let equa_e = genere_equa p (PList (Var nv)) e in
+          (ty, Var nv) :: equa_e
+        | Tail p -> let nv = PList (Var (nouvelle_var ())) in
+            let equa_e = genere_equa p nv e in
+            (ty, nv) :: equa_e
         | PL l -> match l with
             Empty -> [(ty, PList (Var (nouvelle_var ())))]
             | Cons (head, tail) -> let nv = Var (nouvelle_var ()) in 

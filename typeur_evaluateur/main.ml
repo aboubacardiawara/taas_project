@@ -54,6 +54,10 @@ let test_eval () =
  assert_equal_pterm ex_eval_condition_list_1  expected_eval_condition_list_1;
  announce_test_case "liste non vide est comme true" ex_eval_condition_list_2 expected_eval_condition_list_2;
  assert_equal_pterm ex_eval_condition_list_2  expected_eval_condition_list_2;
+ announce_test_case "Tête d'une liste" ex_eval_head_of_list expected_head_of_list;
+ assert_equal_pterm ex_eval_head_of_list expected_head_of_list;
+ announce_test_case "Queue d'une liste" ex_eval_tail_of_list expected_tail_of_list;
+ assert_equal_pterm ex_eval_tail_of_list expected_tail_of_list;
  announce_test_case "let x = 1 in x+3" ex_eval_let_1 expected_eval_let_1;
  assert_equal_pterm ex_eval_let_1 expected_eval_let_1;
  announce_test_case "let x=2 in (λy -> y * x) 10" ex_eval_let_2 expected_eval_let_2;
