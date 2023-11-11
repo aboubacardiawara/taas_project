@@ -77,8 +77,6 @@ let test_eval () =
  assert_equal_pterm eval_ex_typage_ref_5 expected_ex_typage_ref_5;
  print_endline "fin test evaluation"
 
-
-
 let annouce_infer_test_case (expected_type:string) (p:pterm) : unit =
   print_endline (print_term p ^ "\n  > expected type: " ^ expected_type ^ "\n  > actual type: " ^ (inference2 p) ^ "\n\n") 
 
@@ -118,4 +116,4 @@ let test_type () =
   
   annouce_infer_test_case farouck_et farouck
 
-let _ = test_type ()
+let _ = test_eval ()
