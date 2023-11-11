@@ -98,10 +98,8 @@ let test_type () =
 
   annouce_infer_test_case ex_eval_condition_list_1_brut_et ex_eval_condition_list_1_brut;
 
-  annouce_infer_test_case farouck_et farouck;
-
   annouce_infer_test_case farouck2_et farouck2;
-
+  
   annouce_infer_test_case farouck3_et farouck3;
   
   annouce_infer_test_case ex_typage_ref_1_et ex_typage_ref_1;
@@ -116,6 +114,8 @@ let test_type () =
 
   annouce_infer_test_case ex_typage_addition_ref_and_int_et ex_typage_addition_ref_and_int;
 
-  annouce_infer_test_case ex_typage_addition_ref_and_int_in_fonction_et ex_typage_addition_ref_and_int_in_fonction
+  annouce_infer_test_case ex_typage_addition_ref_and_int_in_fonction_et ex_typage_addition_ref_and_int_in_fonction;
+  
+  annouce_infer_test_case farouck_et farouck
 
 let _ = test_type ()
