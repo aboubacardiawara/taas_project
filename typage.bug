@@ -1,0 +1,21 @@
+description: typage d'une abstraction
+(λx -> (let y = (x + 1) in (x y)))
+  > expected type: !! Pas typable
+  > actual type:  ***TYPABLE*** avec le type ((Nat -> T84) -> T84)
+
+
+description: typage d'un let [imperatif]
+(let x = (ref 2) in (x := 3))
+  > expected type: Unit
+  > actual type:  ***PAS TYPABLE*** : type entier non-unifiable avec ref Nat
+
+
+description: typage d'une abstraction [imperatif]
+(λx -> (x := (!x + 1)))
+  > expected type: (Nat ref) -> Unit
+  > actual type:  ***TYPABLE*** avec le type (Nat -> unit)
+
+description: typage d'un let [imperatif]
+(let f = (λx -> (!x + 3)) in (f (ref 2)))
+  > expected type: Nat
+  > actual type:  ***PAS TYPABLE*** : type entier non-unifiable avec ref T125 

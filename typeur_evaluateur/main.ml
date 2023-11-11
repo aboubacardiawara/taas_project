@@ -84,75 +84,34 @@ let annouce_infer_test_case (expected_type:string) (p:pterm) : unit =
 
 let test_type () =
   print_endline "INFERENCE DE TYPE";
-  print_endline ("sur les let");
-  print_endline (print_term ex_eval_let_1_brut);
-  print_endline (inference ex_eval_let_1_brut);
-  print_endline (print_term (eval ex_eval_let_1_brut));
-  print_endline "";
+  annouce_infer_test_case ex_eval_let_1_brut_et ex_eval_let_1_brut;
 
-  print_endline (print_term (eval ex_typage_let_1));
-  print_endline (inference (ex_typage_let_1));
-  print_endline (print_term (eval ex_typage_let_1));
-  print_endline "";
+  annouce_infer_test_case ex_typage_let_1_et ex_typage_let_1;
 
-  print_endline (print_term ex_typage_list_3);
-  print_endline (inference ex_typage_list_3);
-  print_endline "";
+  annouce_infer_test_case ex_typage_list_3_et ex_typage_list_3;
   
-  print_endline (print_term ex_list_vide);
-  print_endline (inference ex_list_vide);
-  print_endline "";
+  annouce_infer_test_case ex_list_vide_et ex_list_vide;
 
-  print_endline (print_term ex_typage_list_4);
-  print_endline (inference ex_typage_list_4);
-  print_endline "";
+  annouce_infer_test_case ex_typage_list_4_et ex_typage_list_4;
 
-  print_endline (print_term (ex_typage_let_2));
-  print_endline (inference ex_typage_let_2);
-  print_endline (print_term (eval ex_typage_let_2));
-  print_endline "";
+  annouce_infer_test_case ex_eval_condition_1_brut_et ex_eval_condition_1_brut;
+
+  annouce_infer_test_case ex_eval_condition_list_1_brut_et ex_eval_condition_list_1_brut;
+
+  annouce_infer_test_case farouck_et farouck;
+
+  annouce_infer_test_case farouck2_et farouck2;
+
+  annouce_infer_test_case farouck3_et farouck3;
   
-
-  print_endline (print_term ex_eval_condition_1_brut);
-  print_endline (inference ex_eval_condition_1_brut);
-  print_endline (print_term (eval ex_eval_condition_1_brut));
-  print_endline "";
-
-  print_endline (print_term ex_eval_condition_list_1_brut);
-  print_endline (inference ex_eval_condition_list_1_brut);
-  print_endline (print_term (eval ex_eval_condition_list_1_brut));
-  print_endline "";
-
-  print_endline (print_term farouck);
-  print_endline (inference farouck);
-  print_endline "";
-
-  print_endline (print_term farouck2);
-  print_endline (inference farouck2);
-  print_endline "";
-
-  print_endline (print_term farouck3);
-  print_endline (inference farouck3);
-  print_endline "";
+  annouce_infer_test_case ex_typage_ref_1_et ex_typage_ref_1;
   
-  print_endline (print_term ex_typage_ref_1);
-  print_endline (inference ex_typage_ref_1);
-  print_endline "";
-  
-  print_endline (print_term ex_typage_ref_2);
-  print_endline (inference ex_typage_ref_2);
-  print_endline (print_term (eval ex_typage_ref_2));
-  print_endline "";
+  annouce_infer_test_case ex_typage_ref_2_et ex_typage_ref_2;
 
-  print_endline (print_term ex_typage_ref_3);
-  print_endline (inference ex_typage_ref_3);
-  print_endline "";
+  annouce_infer_test_case ex_typage_ref_3_et ex_typage_ref_3;
 
-  print_endline (print_term ex_typage_ref_4);
-  print_endline (inference ex_typage_ref_4);
-  print_endline "";
+  annouce_infer_test_case ex_typage_ref_4_et ex_typage_ref_4;
 
-  annouce_infer_test_case ex_typage_ref_5_et ex_typage_ref_5;
   annouce_infer_test_case ex_typage_ref_5_et ex_typage_ref_5
-  
+
 let _ = test_type ()

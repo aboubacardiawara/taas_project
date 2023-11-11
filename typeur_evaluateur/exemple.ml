@@ -20,6 +20,7 @@ let ex_trois : pterm = N 3
 let ex_addition : pterm = Add (ex_un, ex_deux)
 let ex_substract : pterm = Sub (ex_un, ex_deux)
 let ex_list_vide : pterm = PL Empty
+let ex_list_vide_et : string = "[a']" 
 let ex_list_entiers : pterm = PL (Cons (ex_un, Cons (ex_deux, Cons (ex_deux, Empty))))
 let ex_list_abs : pterm = PL (Cons (ex_id, Empty))
 let inf_ex_vide : string = inference ex_list_vide
@@ -72,6 +73,7 @@ let ex_eval_multiplication : pterm = eval (Mult (N 2, N 3))
 let expected_eval_multiplication : pterm = N 6
 (*condition sur les entiers*)
 let ex_eval_condition_1_brut : pterm = (Cond (N 1, N 1, N 2))
+let ex_eval_condition_1_brut_et : string = "Nat"
 let ex_eval_condition_1 : pterm = eval ex_eval_condition_1_brut 
 let expected_eval_condition_1 : pterm = N 1
 let ex_eval_condition_2_brut : pterm = (Cond (N 0, N 1, N 2))
@@ -79,6 +81,7 @@ let ex_eval_condition_2 : pterm = eval ex_eval_condition_2_brut
 let expected_eval_condition_2 : pterm = N 2
 (*condition sur les listes*)
 let ex_eval_condition_list_1_brut : pterm = (Cond (PL (Cons (N 1, Empty)), N 1, N 2))
+let ex_eval_condition_list_1_brut_et : string = "Nat"
 let ex_eval_condition_list_1 : pterm = eval ex_eval_condition_list_1_brut
 let expected_eval_condition_list_1 : pterm = N 1
 let ex_eval_condition_list_2_brut : pterm = (Cond (PL Empty, N 1, N 2))
@@ -93,6 +96,7 @@ let expected_eval_list : pterm = PL (Cons (N 5, Cons (N 0, Empty)))
 let ex_eval_let_1_brut : pterm = Let ("x", N 1, Add (Var "x", N 3))
 let ex_eval_let_1 : pterm = eval (Let ("x", N 1, Add (Var "x", N 3)))
 let expected_eval_let_1 : pterm = N 4
+let ex_eval_let_1_brut_et : string = "a' -> a'"
 (*2. let x=2 in (λy -> y * x) 10*)
 let ex_eval_let_2 : pterm = eval (Let ("x", N 2, App (Abs ("y", Mult (Var "y", Var "x")), N 10)))
 let expected_eval_let_2 : pterm = N 20
@@ -101,13 +105,13 @@ let ex_eval_let_3 : pterm = eval (Let ("x", Abs ("x", Var "x"), Abs ("y", Var "x
 let expected_eval_let_3 : pterm = Abs ("y", Abs ("x", Var "x"))
 (*TYPAGE: let x=4 in (func x -> x) *)
 let ex_typage_let_1 : pterm = Let ("x", N 4, Abs ("x", Var "x"))
-let ex_typage_let_1_et : string = "Nat -> Nat"
+let ex_typage_let_1_et : string = "a' -> a'"
 (*TYPAGE: let x=4 in (func y -> x) *)
 let ex_typage_let_2 : pterm = Let ("x", N 4, Abs ("y", Var "x"))
 let ex_typage_let_2_et : string = "(v a) -> Nat"
 (*Typage [1, 3, 4]*)
 let ex_typage_list_3 : pterm = PL (Cons (N 1, Cons (N 3, Cons (N 4, Empty))))
-let ex_typage_list_3_et : string = "List Nat"
+let ex_typage_list_3_et : string = "[nat]"
 (*Typage [1, 3, [2]]*)
 let ex_typage_list_4 : pterm = PL (Cons (N 1, Cons (N 3, Cons (PL (Cons (N 2, Empty)), Empty))))
 let ex_typage_list_4_et : string = "!! Pas typable"
