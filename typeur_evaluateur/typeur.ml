@@ -368,7 +368,7 @@ let rec typage (t:pterm) : ptype  =
     try (unification e "but") with Echec_unif bla -> raise (Echec_unif bla)
     and  
       (* genere des equations de typage à partir d'un terme *)  
-    genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
+      genere_equa (te : pterm) (ty : ptype) (e : env) : equa =
         match te with 
           Var v -> let tv : ptype = cherche_type v e in [(ty, tv)] 
         | App (t1, t2) -> let nv : string = nouvelle_var () in
@@ -405,11 +405,12 @@ let rec typage (t:pterm) : ptype  =
             ) with Echec_unif bla -> raise (Echec_unif bla))
         | Punit -> [(ty, TPunit)]
         | Ref p -> let p_type = Var (nouvelle_var ()) in (ty, TRef p_type) :: (genere_equa p p_type e)
-        | Mut (p1, p2) -> let nv = nouvelle_var () in
-          (ty,  TPunit)::(genere_equa p1 (Var nv) e) @ (genere_equa p2 (Var nv) e)
-        | Bang p -> let nv = nouvelle_var () in
-            let eq1 : equa = genere_equa p (Var nv) e in
-            (ty, Var nv)::eq1
+        | Mut (x, p2) -> let nv = Var (nouvelle_var ()) in
+          (ty,  TPunit)::(genere_equa x (TRef nv) e) @ (genere_equa p2 nv e)
+        | Bang p -> (try (
+          let p_type = typageAux p e in
+          (ty, p_type)::(genere_equa p p_type e)
+        ) with Echec_unif bla -> raise (Echec_unif bla))
         | PL l -> match l with
             Empty -> [(ty, PList (Var (nouvelle_var ())))]
             | Cons (head, tail) -> let nv = Var (nouvelle_var ()) in 
@@ -417,8 +418,6 @@ let rec typage (t:pterm) : ptype  =
               let equa_tail = genere_equa (PL tail) (PList nv) e in
               (ty, PList nv) :: equa_head @ equa_tail
     
-
-        
 
 
 (*utilise la fonction typage*)
