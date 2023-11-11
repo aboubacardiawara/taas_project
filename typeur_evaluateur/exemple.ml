@@ -96,7 +96,7 @@ let expected_eval_list : pterm = PL (Cons (N 5, Cons (N 0, Empty)))
 let ex_eval_let_1_brut : pterm = Let ("x", N 1, Add (Var "x", N 3))
 let ex_eval_let_1 : pterm = eval (Let ("x", N 1, Add (Var "x", N 3)))
 let expected_eval_let_1 : pterm = N 4
-let ex_eval_let_1_brut_et : string = "a' -> a'"
+let ex_eval_let_1_brut_et : string = "nat "
 (*2. let x=2 in (λy -> y * x) 10*)
 let ex_eval_let_2 : pterm = eval (Let ("x", N 2, App (Abs ("y", Mult (Var "y", Var "x")), N 10)))
 let expected_eval_let_2 : pterm = N 20
@@ -168,3 +168,11 @@ let ex_typage_ref_5 : pterm = Let ("f", Abs ("x", Add (Bang (Var "x"), N 3)), Ap
 let eval_ex_typage_ref_5 : pterm = eval ex_typage_ref_5
 let expected_ex_typage_ref_5 : pterm = N 5
 let ex_typage_ref_5_et : string = "Nat"
+(*!(Ref 4) + 2*)
+let ex_typage_addition_ref_and_int : pterm = Add (Bang (Ref (N 4)), N 2)
+let ex_typage_addition_ref_and_int_et : string = "Nat"
+
+(*ex_typage_addition_ref_and_int in fonction: (\x -> !x + 2) (Ref 4)*)
+let ex_typage_addition_ref_and_int_in_fonction : pterm = Abs ("x", Add (Bang (Var "x"), N 2))
+let ex_typage_addition_ref_and_int_in_fonction_et : string = "Nat"
+(*let f = \x -> !x + 2 in f(Ref 4)*)

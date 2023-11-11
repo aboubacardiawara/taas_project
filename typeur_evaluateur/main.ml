@@ -112,6 +112,10 @@ let test_type () =
 
   annouce_infer_test_case ex_typage_ref_4_et ex_typage_ref_4;
 
-  annouce_infer_test_case ex_typage_ref_5_et ex_typage_ref_5
+  annouce_infer_test_case ex_typage_ref_5_et ex_typage_ref_5;
+
+  annouce_infer_test_case ex_typage_addition_ref_and_int_et ex_typage_addition_ref_and_int;
+
+  annouce_infer_test_case ex_typage_addition_ref_and_int_in_fonction_et ex_typage_addition_ref_and_int_in_fonction
 
 let _ = test_type ()

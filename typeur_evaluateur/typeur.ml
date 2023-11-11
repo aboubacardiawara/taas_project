@@ -355,7 +355,6 @@ let rec unification (e : equa_zip) (but : string) : ptype =
   | (e1, (TRef t1, t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t2)))
   | (e1, (t1, TRef t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t1)))
                                       
-
 (*fonction de typage*)
 let rec typage (t:pterm) : ptype  = 
   let t' = alpha_conversion t in
@@ -379,9 +378,9 @@ let rec typage (t:pterm) : ptype  =
             and nv2 : string = nouvelle_var () in
             (ty, Arr (Var nv1, Var nv2))::(genere_equa t (Var nv2) ((x, Var nv1)::e))  
         | N _ -> [(ty, Nat)]
-        | Add (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
-            let eq2 : equa = genere_equa t2 Nat e in
-            (ty, Nat)::(eq1 @ eq2)
+        | Add (t1, t2) -> let eq1 : equa = genere_equa t1 ty e in
+            let eq2 : equa = genere_equa t2 ty e in
+            (eq1 @ eq2)
         | Sub (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
             let eq2 : equa = genere_equa t2 Nat e in
             (ty, Nat)::(eq1 @ eq2)
@@ -400,17 +399,19 @@ let rec typage (t:pterm) : ptype  =
         | Cond (_, t2, t3) -> (genere_equa t2 ty e) @ (genere_equa t3 ty e) (*split cond for nat and list*)
         | Let (x, e1, e2) -> (
           try (
-            let type_of_e1 : ptype = typageAux e1 e 
+            let type_of_e1 : ptype = typageAux e1 e
             in genere_equa e2 ty ((x, type_of_e1)::e)
             ) with Echec_unif bla -> raise (Echec_unif bla))
         | Punit -> [(ty, TPunit)]
         | Ref p -> let p_type = Var (nouvelle_var ()) in (ty, TRef p_type) :: (genere_equa p p_type e)
-        | Mut (x, p2) -> let nv = Var (nouvelle_var ()) in
-          (ty,  TPunit)::(genere_equa x (TRef nv) e) @ (genere_equa p2 nv e)
-        | Bang p -> (try (
-          let p_type = typageAux p e in
-          (ty, p_type)::(genere_equa p p_type e)
+        | Mut (x, p2) -> (try (
+          let p2_type : ptype = typageAux p2 e in
+          let equation : equa = genere_equa x (TRef p2_type) e in
+          (ty, TPunit) :: equation
         ) with Echec_unif bla -> raise (Echec_unif bla))
+        | Bang p -> let nv = nouvelle_var () in
+          let equa_p = genere_equa p (TRef (Var nv)) e in
+          (ty, Var nv) :: equa_p
         | PL l -> match l with
             Empty -> [(ty, PList (Var (nouvelle_var ())))]
             | Cons (head, tail) -> let nv = Var (nouvelle_var ()) in 
@@ -418,14 +419,11 @@ let rec typage (t:pterm) : ptype  =
               let equa_tail = genere_equa (PL tail) (PList nv) e in
               (ty, PList nv) :: equa_head @ equa_tail
     
-
-
 (*utilise la fonction typage*)
 let inference2 (p:pterm) : string = 
   try (let type_of_p = typage p in 
     " ***TYPABLE*** avec le type " ^ (print_type type_of_p)
   ) with Echec_unif bla -> " ***PAS TYPABLE*** : " ^ bla
-
 
 (* enchaine generation d'equation et unification *)                                   
 let inference (t : pterm) : string =
