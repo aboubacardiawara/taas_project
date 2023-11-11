@@ -157,7 +157,7 @@ let ex_typage_ref_2_et : string = "(Nat ref) -> Unit"
 let ex_typage_ref_3 : pterm = Let ("x", Ref (N 3), Var "x")
 let ex_typage_ref_3_et : string = "Nat ref"
 (*let f(x) = (let y := !x + 3 in y) in let f(ref 2) *)
-let ex_typage_ref_4 : pterm = Let ("f", Abs ("x", Let ("y", Ref (Add (Bang (Var "x"), N 3)), Bang (Var "y"))), App (Var "f", Ref (N 2)))
+let ex_typage_ref_4 : pterm = Let ("f", Abs ("x", Let ("y", Ref (Add (Bang (Var "x"), N 3)), (Var "y"))), App (Var "f", Ref (N 2)))
 let ex_typage_ref_4_et : string = "ref Nat"
 (* let ex_typage_ref_5_0: (λx -> (!x + 3)) (ref 2)*)
 let ex_typage_ref_5_0 : pterm = App (Abs ("x", Add (Bang (Var "x"), N 3)), Ref (N 2))
@@ -173,6 +173,6 @@ let ex_typage_addition_ref_and_int : pterm = Add (Bang (Ref (N 4)), N 2)
 let ex_typage_addition_ref_and_int_et : string = "Nat"
 
 (*ex_typage_addition_ref_and_int in fonction: (\x -> !x + 2) (Ref 4)*)
-let ex_typage_addition_ref_and_int_in_fonction : pterm = Abs ("x", Add (Bang (Var "x"), N 2))
+let ex_typage_addition_ref_and_int_in_fonction : pterm = App (Abs ("x", Add (Bang (Var "x"), N 2)), Ref (N 4))
 let ex_typage_addition_ref_and_int_in_fonction_et : string = "Nat"
 (*let f = \x -> !x + 2 in f(Ref 4)*)
