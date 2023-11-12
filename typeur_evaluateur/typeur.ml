@@ -23,7 +23,8 @@ type pterm =
   | Ref of pterm (*ex: Ref 23 *)
   | Bang of pterm (*ex: !x *)
   | Mut of pterm * pterm (*ex: e1 := e2 *)
-  | Punit (*type de retour des traits imperatifs ex: () *) 
+  | Sequence of pterm list
+  | Punit (*type de retour des traits imperatifs ex: () *)
 
 (* Types *) 
 type ptype = 
@@ -75,12 +76,18 @@ let rec print_term (t : pterm) : string =
     | Punit -> "unit"
     | Head l -> "(head " ^ (print_term l) ^ ")"
     | Tail l -> "(tail " ^ (print_term l) ^ ")"
+    | Sequence l -> "{"^ (print_sequence l) ^ "}"
     | Let (x, t1, t2) -> "(let "^ x ^" = " ^ (print_term t1) ^" in " ^ (print_term t2) ^")"
     and print_list (l : pterm plist) : string =
       match l with
         Empty -> ""
         | Cons (t, Empty) -> print_term t
         | Cons (t, l) -> (print_term t) ^ "; " ^ (print_list l)
+    and print_sequence (l : pterm list) : string =
+      match l with
+        [] -> ""
+        | [t] -> print_term t
+        | t::q -> (print_term t) ^ "; " ^ (print_sequence q)
         
 (* pretty printer de types*)
 let rec print_type (t : ptype) : string =
@@ -136,15 +143,20 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Punit -> Punit
     | Head p -> Head (alpha_conversion_aux p name_env)
     | Tail p -> Tail (alpha_conversion_aux p name_env)
+    | Sequence l -> Sequence (alpha_conversion_sequence l name_env)
     | Let (name, p1, p2) -> let (nv):string = nouvelle_var () in
       Let (nv, (alpha_conversion_aux p1 ((name, nv)::name_env)), (alpha_conversion_aux p2 ((name, nv)::name_env)))
     | PL l -> PL (alpha_conversion_list l name_env)
-        and alpha_conversion_list (l:pterm plist) name_env = 
-          match l with
-          | Empty -> Empty
-          | Cons (p, ps) -> Cons (alpha_conversion_aux p name_env, alpha_conversion_list ps name_env)
-  in alpha_conversion_aux p_terme []
-
+      and alpha_conversion_list (l:pterm plist) (name_env:name_env_type) : (pterm plist) = 
+        match l with
+        | Empty -> Empty
+        | Cons (p, ps) -> Cons (alpha_conversion_aux p name_env, alpha_conversion_list ps name_env)
+      and alpha_conversion_sequence (l:pterm list) (name_env:name_env_type) : (pterm list) = 
+        match l with
+        | [] -> []
+        | p::ps -> (alpha_conversion_aux p name_env)::(alpha_conversion_sequence ps name_env)
+      in alpha_conversion_aux p_terme []
+          
 (* vérificateur d'occurence de variables *)  
 let rec appartient_type (v : string) (t : ptype) : bool =
   match t with
@@ -173,11 +185,17 @@ let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) =
   | Head p -> Head (substitution v new_p p)
   | Tail p -> Tail (substitution v new_p p)
   | Mut (p1, p2) -> Mut (substitution v new_p p1, substitution v new_p p2)
+  | Sequence l -> Sequence (substitution_sequence v new_p l)
   | PL l -> PL (substitution_list v new_p l)
-      and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
-        (match l with
-        | Empty -> Empty
-        | Cons (t, ts) -> Cons (substitution v p t, substitution_list v p ts))
+    and substitution_list (v:string) (p:pterm) (l:pterm plist) : (pterm plist) =
+      (match l with
+      | Empty -> Empty
+      | Cons (t, ts) -> Cons (substitution v p t, substitution_list v p ts))
+    and substitution_sequence (v:string) (p:pterm) (l:pterm list) : (pterm list) =
+      (match l with
+      | [] -> []
+      | t::ts -> (substitution v p t)::(substitution_sequence v p ts))
+
 (*Effectue une beta conversion d'un terme*)
 let rec beta_reduction (p:pterm) : pterm = 
   match p with
@@ -275,16 +293,23 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
     | Ref e -> eval_aux p2 ((s, e)::etat')
     | _ -> eval_aux (substitution s v p2) etat'
   )
-  and eval_list (l:pterm plist) (etat:etat_t) : (pterm plist * etat_t) =
-        match l with
-        | Empty -> Empty, etat
-        | Cons (t, ts) -> let t', etat' = eval_aux t etat in let ts', etat'' = eval_list ts etat' in
-          Cons (t', ts'), etat''
-
+  | Sequence l -> eval_sequence l etat
+    (*evalue une liste d'instruction pour une sequence d'instruction donnée.*)
+    (*Le resultat est la valeur de la dernière instruction.*)
+    and eval_sequence (l:pterm list) (etat:etat_t) : (pterm * etat_t) =
+      match l with
+      | [] -> Punit, etat
+      | [t] -> eval_aux t etat
+      | t::q -> let _, etat' = eval_aux t etat in eval_sequence q etat'
+    (*evalue une liste de termes pour une liste de termes donnée (liste native)*)
+    and eval_list (l:pterm plist) (etat:etat_t) : (pterm plist * etat_t) =
+      match l with
+      | Empty -> Empty, etat
+      | Cons (t, ts) -> let t', etat' = eval_aux t etat in let ts', etat'' = eval_list ts etat in
+        Cons (t', ts'), etat''
 
 let rec eval (p:pterm) : pterm = 
   let (p', etat') : (pterm * etat_t) = eval_aux (alpha_conversion p) [] in p'
-
 
 (* vérificateur d'égalité de termes 
 Attention le resultat peut comporter des faux negatifs.

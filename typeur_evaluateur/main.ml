@@ -79,6 +79,9 @@ let test_eval () =
  assert_equal_pterm eval_ex_typage_ref_5_0 expected_ex_typage_ref_5_0;
  announce_test_case "let f(x) = (let y := !x + 3 in !y) in let f(ref 2)" eval_ex_typage_ref_5_0 expected_ex_typage_ref_5;
  assert_equal_pterm eval_ex_typage_ref_5 expected_ex_typage_ref_5;
+ announce_test_case "{N 1; N 2}" eval_ex_sequence1 expected_ex_sequence1;
+ announce_test_case "let x = ref 10 in {x := !x + 1; !x}" eval_ex_sequence2 expected_ex_sequence2;
+ assert_equal_pterm eval_ex_sequence2 expected_ex_sequence2;
  print_endline "fin test evaluation"
 
 let annouce_infer_test_case (expected_type:string) (p:pterm) : unit =
@@ -119,5 +122,9 @@ let test_type () =
   annouce_infer_test_case ex_typage_addition_ref_and_int_in_fonction_et ex_typage_addition_ref_and_int_in_fonction;
   
   annouce_infer_test_case farouck_et farouck
+
+
+let playground () =
+  print_endline (print_term ex_sequence1)
 
 let _ = test_eval ()

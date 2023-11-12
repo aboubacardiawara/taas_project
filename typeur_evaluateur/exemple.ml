@@ -182,6 +182,20 @@ let ex_typage_addition_ref_and_int_et : string = "Nat"
 let ex_typage_addition_ref_and_int_in_fonction : pterm = App (Abs ("x", Add (Bang (Var "x"), N 2)), Ref (N 4))
 let ex_typage_addition_ref_and_int_in_fonction_et : string = "Nat"
 
+(*Exemple sequence d'instruction*)
+(*{N 1; N 2}*)
+let ex_sequence1 : pterm = Sequence ([N 1; N 2])
+let ex_sequence1_et : string = "Nat"
+let eval_ex_sequence1 : pterm = eval ex_sequence1
+let expected_ex_sequence1 : pterm = N 2
+
+(*let x = ref 10 in {x := !x + 1; !x}*)
+let ex_sequence2 : pterm = Let ("x", Ref (N 10), Sequence ([Mut (Var "x", Add (Bang (Var "x"), N 1)); Bang (Var "x")]))
+let ex_sequence2_et : string = "Nat"
+let eval_ex_sequence2 : pterm = eval ex_sequence2
+let expected_ex_sequence2 : pterm = N 11
+
+(*let x = ref 10 in {x := !x + 1; !x}*)
 
 (*4.6 POLYMORPHISME FAIBLE *)
 (*let l = [] in let _ = l := [(^x.x)] in (hd !l) + 2 *)
