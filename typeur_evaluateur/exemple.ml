@@ -195,7 +195,47 @@ let ex_sequence2_et : string = "Nat"
 let eval_ex_sequence2 : pterm = eval ex_sequence2
 let expected_ex_sequence2 : pterm = N 11
 
-(*let x = ref 10 in {x := !x + 1; !x}*)
+(*exemple plus complexe*)
+let example_expression : pterm =
+  Sequence [
+    Let ("x", N 10,
+      Sequence [
+        Let ("y", Ref (N 19),
+          Sequence [
+            Mut (Var "y", Add (Bang (Var "y"), N 1));
+            Add (Var "x", Bang (Var "y"))
+          ]
+        );
+      ]
+    )
+  ]
+
+
+let eval_example_expression : pterm = eval example_expression
+
+let expected_eval_example_expression : pterm = N 30
+
+let example_expression2 = Sequence [
+  Let ("x", N 500,
+    Let ("y", Ref (N 20),
+      Sequence [
+        Add (Var "x", Bang (Var "y"));
+        Sequence [
+          Let ("z", N 10,
+              Let ("x", N 10,
+                Sequence [
+                  Mut (Var "y", Var "x");
+                ]
+              );
+          )
+        ];
+        Add (Var "x", Bang (Var "y"));
+      ]
+    )
+  )
+]
+
+let eval_example_expression2 : pterm = eval example_expression2
 
 (*4.6 POLYMORPHISME FAIBLE *)
 (*let l = [] in let _ = l := [(^x.x)] in (hd !l) + 2 *)
