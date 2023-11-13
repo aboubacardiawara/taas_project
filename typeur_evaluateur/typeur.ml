@@ -17,8 +17,8 @@ type pterm =
   | Head of pterm
   | Tail of pterm
   | Mult of pterm * pterm
-  | CondNat of pterm * pterm * pterm
-  | CondList of pterm * pterm * pterm
+  | IfZero of pterm * pterm * pterm
+  | IfEmpty of pterm * pterm * pterm
   | Let of string * pterm * pterm
   | Ref of pterm (*ex: Ref 23 *)
   | Bang of pterm (*ex: !x *)
@@ -67,8 +67,8 @@ let rec print_term (t : pterm) : string =
     | Add (t1, t2) -> "(" ^ (print_term t1) ^" + "^ (print_term t2) ^ ")"
     | Sub (t1, t2) -> "(" ^ (print_term t1) ^" - "^ (print_term t2) ^ ")"
     | Mult (t1, t2) -> "(" ^ (print_term t1) ^" * "^ (print_term t2) ^ ")"
-    | CondList (t1, t2, t3) -> "(ifList " ^ (print_term t1) ^ " then " ^ (print_term t2) ^ " else " ^ (print_term t3) ^ ")"
-    | CondNat (t1, t2, t3) -> "(ifNat " ^ (print_term t1) ^ " then " ^ (print_term t2) ^ " else " ^ (print_term t3) ^ ")"
+    | IfEmpty (t1, t2, t3) -> "(ifList " ^ (print_term t1) ^ " then " ^ (print_term t2) ^ " else " ^ (print_term t3) ^ ")"
+    | IfZero (t1, t2, t3) -> "(ifZero " ^ (print_term t1) ^ " then " ^ (print_term t2) ^ " else " ^ (print_term t3) ^ ")"
     | PL l -> "[" ^ print_list l ^ "]"
     | Ref p -> "(ref " ^ (print_term p) ^ ")"
     | Bang p -> "!" ^ (print_term p)
@@ -135,8 +135,8 @@ let rec alpha_conversion (p_terme:pterm) : pterm =
     | Add (p1, p2) -> Add (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Sub (p1, p2) -> Sub (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
     | Mult (p1, p2) -> Mult (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
-    | CondNat (p1, p2, p3) -> CondNat (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env, alpha_conversion_aux p3 name_env)
-    | CondList (p1, p2, p3) -> CondList (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env, alpha_conversion_aux p3 name_env)
+    | IfZero (p1, p2, p3) -> IfZero (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env, alpha_conversion_aux p3 name_env)
+    | IfEmpty (p1, p2, p3) -> IfEmpty (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env, alpha_conversion_aux p3 name_env)
     | Ref p -> Ref (alpha_conversion_aux p name_env)
     | Bang p -> Bang (alpha_conversion_aux p name_env) 
     | Mut (p1, p2) -> Mut (alpha_conversion_aux p1 name_env, alpha_conversion_aux p2 name_env)
@@ -176,8 +176,8 @@ let rec substitution (v:string) (new_p:pterm) (actual_p:pterm) : (pterm) =
   | Add (m, n) -> Add (substitution v new_p m, substitution v new_p n)
   | Sub (m, n) -> Sub (substitution v new_p m, substitution v new_p n)
   | Mult (m, n) -> Mult (substitution v new_p m, substitution v new_p n)
-  | CondNat (t1, t2, t3) -> CondNat (substitution v new_p t1, substitution v new_p t2, substitution v new_p t3)
-  | CondList (t1, t2, t3) -> CondList (substitution v new_p t1, substitution v new_p t2, substitution v new_p t3)
+  | IfZero (t1, t2, t3) -> IfZero (substitution v new_p t1, substitution v new_p t2, substitution v new_p t3)
+  | IfEmpty (t1, t2, t3) -> IfEmpty (substitution v new_p t1, substitution v new_p t2, substitution v new_p t3)
   | Let (s, t1, t2) -> Let (s, substitution v new_p t1, substitution v new_p t2)
   | Ref p -> Ref (substitution v new_p p)
   | Bang p -> Bang (substitution v new_p p)
@@ -250,16 +250,16 @@ let rec eval_aux (p:pterm) (etat:etat_t) : (pterm * etat_t) =
     )
   | App (_, _) -> let res = beta_reduction p in eval_aux res etat
   | PL l -> let l', etat' = eval_list l etat in PL l', etat'
-  | CondNat (cond, _, elseterme) -> (
+  | IfZero (cond, consequence, alternative) -> (
     match eval_aux cond etat with
-    | N 0, etat' -> eval_aux elseterme etat'
-    | N _, etat' -> eval_aux cond etat'
+    | N 0, etat' -> eval_aux consequence etat'
+    | N _, etat' -> eval_aux alternative etat'
     | _, _ -> p, etat (*SI la condition n'est pas un entier*)
   )
-  | CondList (cond, ifterme, elseterme) -> (
+  | IfEmpty (cond, consequence, alternative) -> (
     match eval_aux cond etat with
-    | PL Empty, etat' -> eval_aux elseterme etat'
-    | PL _, etat' -> eval_aux ifterme etat'
+    | PL Empty, etat' -> eval_aux consequence etat'
+    | PL _, etat' -> eval_aux alternative etat'
     | _, _ -> p, etat (*SI la condition n'est pas une liste*)
   )
   | Abs (s, ab) -> Abs (s, ab), etat
@@ -450,12 +450,12 @@ let rec typage (t:pterm) : ptype  =
         | Mult (t1, t2) -> let eq1 : equa = genere_equa t1 Nat e in
             let eq2 : equa = genere_equa t2 Nat e in
             (ty, Nat)::(eq1 @ eq2)
-        | CondNat (cond, cons, altern) -> 
+        | IfZero (cond, cons, altern) -> 
             let eq1 : equa = let nv : ptype = Var (nouvelle_var ()) in genere_equa cond nv e in
             let eq2 : equa = genere_equa cons ty e in
             let eq3 : equa = genere_equa altern ty e in
             eq1 @ eq2 @ eq3
-        | CondList (cond, cons, altern) -> 
+        | IfEmpty (cond, cons, altern) -> 
             let eq1 : equa = let nv : ptype = Var (nouvelle_var ()) in genere_equa cond nv e in
             let eq2 : equa = genere_equa cons ty e in
             let eq3 : equa = genere_equa altern ty e in
