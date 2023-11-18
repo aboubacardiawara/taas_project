@@ -1,6 +1,8 @@
 open Typeur
 open Ast
 open Type
+open Evaluateur
+
 exception Assert_failure of string
 exception Assert_equal_failure of string
 exception Assert_not_equal_failure of string

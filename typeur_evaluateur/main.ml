@@ -3,6 +3,7 @@ open Type
 open Ast
 open Exemple
 open Asserter
+open Evaluateur
 
 let print_question (p:pterm) (desc:string) : unit =
   print_endline (desc ^ (print_term p))
@@ -132,4 +133,4 @@ let test_type () =
 let playground () =
   print_endline (print_term ex_sequence1)
 
-let _ = test_type ()
+let _ = playground ()

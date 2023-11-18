@@ -1,6 +1,7 @@
 open Typeur
 open Type
 open Ast
+open Evaluateur
 
 (* ***EXEMPLES*** *)  
 let ex_id : pterm = Abs ("x", Var "x") 
