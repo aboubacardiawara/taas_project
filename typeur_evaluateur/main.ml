@@ -1,4 +1,6 @@
 open Typeur
+open Type
+open Ast
 open Exemple
 open Asserter
 

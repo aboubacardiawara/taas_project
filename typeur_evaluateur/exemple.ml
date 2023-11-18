@@ -1,4 +1,7 @@
 open Typeur
+open Type
+open Ast
+
 (* ***EXEMPLES*** *)  
 let ex_id : pterm = Abs ("x", Var "x") 
 let inf_ex_id : string = inference ex_id 
@@ -115,6 +118,7 @@ let ex_typage_let_1_et : string = "a' -> a'"
 (*TYPAGE: let x=4 in (func y -> x) *)
 let ex_typage_let_2 : pterm = Let ("x", N 4, Abs ("y", Var "x"))
 let ex_typage_let_2_et : string = "(v a) -> Nat"
+(*let f = x -> x in f*)
 (*Typage [1, 3, 4]*)
 let ex_typage_list_3 : pterm = PL (Cons (N 1, Cons (N 3, Cons (N 4, Empty))))
 let ex_typage_list_3_et : string = "[nat]"
