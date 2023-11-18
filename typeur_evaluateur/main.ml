@@ -133,4 +133,4 @@ let test_type () =
 let playground () =
   print_endline (print_term ex_sequence1)
 
-let _ = playground ()
+let _ = test_eval ()
