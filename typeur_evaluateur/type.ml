@@ -6,3 +6,4 @@ type ptype =
   | PList of ptype
   | TPunit
   | TRef of ptype
+  | Forall of string list * ptype  

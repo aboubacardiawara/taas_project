@@ -73,7 +73,40 @@ let rec trouve_but (e : equa_zip) (but : string) =
   | (_, (Var v, t)::_) when v = but -> t
   | (_, (t, Var v)::_) when v = but -> t 
   | (e1, c::e2) -> trouve_but (c::e1, e2) but
-                    
+       
+
+let env_contains (env:env) (s:string) : bool =
+  List.exists (fun (x, _) -> x = s) env
+  
+
+(*barendregtisation d'un type*)  
+let renomme_variables_liees (t:ptype) : ptype =
+  let rec aux (t:ptype) (vars_libres:string list) : ptype =
+  match t with
+    Var v when est_liee v vars_libres -> Var (nouvelle_var ())
+  | Var v -> Var v
+  | Arr (t1, t2) -> Arr (aux t1 vars_libres, aux t2 vars_libres)
+  | Nat -> Nat
+  | TPunit -> TPunit
+  | TRef t -> TRef (aux t vars_libres)
+  | PList t -> PList (aux t vars_libres)
+  | Forall (v, t) -> Forall (v, aux t (v@vars_libres))
+    and est_liee (v:string) (vars_libres:string list) : bool =
+      (*Toute variable non libre est liée*)
+      not (List.exists (fun x -> x = v) vars_libres)
+  in aux t []
+
+(*ouvre un type*)
+let ouvre_type (t:ptype) : ptype = 
+  match t with
+  | Forall (_, t) -> t
+  | _ -> t
+
+let barendregtisation (t:ptype) : ptype = ouvre_type (renomme_variables_liees t)
+
+(*renvoie une liste de variables liées*)
+
+
 (* résout un système d'équations *) 
 let rec unification (e : equa_zip) (but : string) : ptype = 
   match e with 
@@ -114,7 +147,22 @@ let rec unification (e : equa_zip) (but : string) : ptype =
   | (e1, (TRef t1, TRef t2)::e2) -> unification (e1, (t1, t2)::e2) but
   | (e1, (TRef t1, t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t2)))
   | (e1, (t1, TRef t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t1)))
-                                      
+  (*Les deux sont des forall,  *)
+  | (e1, (Forall (v1, t1), Forall (v2, t2))::e2) -> unification (e1, (barendregtisation (Forall (v1, t1)), barendregtisation (Forall (v2, t2)))::e2) but
+  (*un des deux est un forall -> 1) renomme variables liés 2) ouvre*)
+  | (e1, (Forall (v1, t1), t2)::e2) -> unification (e1, ((barendregtisation (Forall (v1, t1))), t2)::e2) but
+  | (e1, (t1, Forall (v2, t2))::e2) -> unification (e1, (t2, (barendregtisation (Forall (v2, t2))))::e2) but
+
+
+(*retourne les variables libres d'un type*)
+let rec generalise (t:ptype) (env:env) : ptype =
+  match t with
+  | Var v when env_contains env v -> Forall (v::[], t)
+  | Arr (t1, t2) -> Arr (generalise t1 env, generalise t2 env)
+  | PList t -> PList (generalise t env)
+  | TRef t -> TRef (generalise t env)
+  | _ -> t
+
 (*fonction de typage*)
 let rec typage (t:pterm) : ptype  = 
   let t' = alpha_conversion t in
@@ -159,8 +207,9 @@ let rec typage (t:pterm) : ptype  =
             eq1 @ eq2 @ eq3
         | Let (x, e1, e2) -> (
           try (
-            let type_of_e1 : ptype = typageAux e1 e
-            in genere_equa e2 ty ((x, type_of_e1)::e)
+            let type_of_e1 : ptype = typageAux e1 e in
+            let type_of_e1_gen : ptype = generalise type_of_e1 e in 
+            genere_equa e2 ty ((x, type_of_e1_gen)::e)
             ) with Echec_unif bla -> raise (Echec_unif bla))
         | Punit -> [(ty, TPunit)]
         | Ref p -> let p_type = Var (nouvelle_var ()) in (ty, TRef p_type) :: (genere_equa p p_type e)

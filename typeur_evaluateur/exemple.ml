@@ -241,6 +241,14 @@ let example_expression2 = Sequence [
 ]
 
 let eval_example_expression2 : pterm = eval example_expression2
-
+(*fun a x -> {
+  let a = fun c -> let y = x in y
+  in ((a 1) x)   
+}*)
+let example_brahim : pterm = 
+  Abs ("x",
+  Let ("a", Abs ("c", Let ("y", Var "x", Var "y")), App (App (Var "a", N 1), Var "x"))
+  )
+let example_brahim_et : string = "Pas typable"
 (*4.6 POLYMORPHISME FAIBLE *)
 (*let l = [] in let _ = l := [(^x.x)] in (hd !l) + 2 *)
