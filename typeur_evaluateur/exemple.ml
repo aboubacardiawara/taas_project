@@ -250,5 +250,10 @@ let example_brahim : pterm =
   Let ("a", Abs ("c", Let ("y", Var "x", Var "y")), App (App (Var "a", N 1), Var "x"))
   )
 let example_brahim_et : string = "Pas typable"
+
+let identite_dans_let : pterm = 
+  Let ("f", Abs ("x", Var "x"), Var "f")
+
+let identite_dans_let_et : string = "∀a.a -> a"
 (*4.6 POLYMORPHISME FAIBLE *)
 (*let l = [] in let _ = l := [(^x.x)] in (hd !l) + 2 *)

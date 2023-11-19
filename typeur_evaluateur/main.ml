@@ -128,7 +128,10 @@ let test_type () =
   annouce_infer_test_case ex_typage_addition_ref_and_int_in_fonction_et ex_typage_addition_ref_and_int_in_fonction;
   
   annouce_infer_test_case farouck_et farouck;
-  annouce_infer_test_case example_brahim_et example_brahim
+
+  annouce_infer_test_case example_brahim_et example_brahim;
+
+  annouce_infer_test_case identite_dans_let_et identite_dans_let
 
 
 let playground () =

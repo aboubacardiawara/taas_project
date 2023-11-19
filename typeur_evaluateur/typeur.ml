@@ -17,6 +17,19 @@ let rec print_type (t : ptype) : string =
   | PList l -> (print_type l) ^ " PList"
   | TPunit -> "unit"
   | TRef t -> "ref " ^ (print_type t)
+  | Forall (v, t) -> "forall " ^ (List.fold_left (fun acc x -> acc ^ " " ^ x) "" v) ^ ". " ^ (print_type t)
+
+let rec print_equation (equation:equa) : unit =
+  match equation with
+  | [] -> ()
+  | (t1, t2)::q -> printf "%s = %s\n" (print_type t1) (print_type t2); print_equation q
+
+let rec print_tenv (env:env) : unit =
+  match env with
+  | [] -> ()
+  | (x, t)::q -> printf "%s : %s\n" x (print_type t); print_tenv q
+
+(* générateur de variables fraiches *)
 
 exception VarPasTrouve
 
@@ -45,6 +58,8 @@ let rec substitue_type (t : ptype) (v : string) (t0 : ptype) : ptype =
   | TPunit -> TPunit
   | TRef t -> TRef (substitue_type t v t0)
   | PList t -> PList (substitue_type t v t0)
+  | Forall (v1, t) -> Forall (v1, substitue_type t v t0)
+
 
 (* remplace une variable par un type dans une liste d'équations*)
 let substitue_type_partout (e : equa) (v : string) (t0 : ptype) : equa =
@@ -76,10 +91,23 @@ let rec trouve_but (e : equa_zip) (but : string) =
        
 
 let env_contains (env:env) (s:string) : bool =
-  List.exists (fun (x, _) -> x = s) env
+  List.exists (fun (_, t) -> appartient_type s t) env
   
-
-(*barendregtisation d'un type*)  
+let recup_varibles_libres (t:ptype) (env:env) : string list =
+  let rec aux (t:ptype) (env:env) (res:string list) : string list =
+    match t with
+    | Var v when not (env_contains env v) -> v::res
+    | Var v -> res
+    | Arr (t1, t2) -> aux t1 env (aux t2 env res)
+    | Nat -> res
+    | TPunit -> res
+    | TRef t -> aux t env res
+    | PList t -> aux t env res
+    | Forall (v, t) -> aux t env res
+  in aux t env []
+    
+(*barendregtisation d'un type*)
+(*∀ x1, x2, ..., xn. T  si tout xi different de y alors y est liee à T *) 
 let renomme_variables_liees (t:ptype) : ptype =
   let rec aux (t:ptype) (vars_libres:string list) : ptype =
   match t with
@@ -110,8 +138,13 @@ let barendregtisation (t:ptype) : ptype = ouvre_type (renomme_variables_liees t)
 (* résout un système d'équations *) 
 let rec unification (e : equa_zip) (but : string) : ptype = 
   match e with 
-    (* on a passé toutes les équations : succes *)
-    (_, []) -> (try trouve_but (rembobine e) but with VarPasTrouve -> raise (Echec_unif "but pas trouvé"))
+  (* on a passé toutes les équations : succes *)
+  | (_, []) -> (try trouve_but (rembobine e) but with VarPasTrouve -> raise (Echec_unif "but pas trouvé"))
+  (*Les deux sont des forall,  *)
+  | (e1, (Forall (v1, t1), Forall (v2, t2))::e2) -> unification (e1, (barendregtisation (Forall (v1, t1)), barendregtisation (Forall (v2, t2)))::e2) but
+  (*un des deux est un forall -> 1) renomme variables liés 2) ouvre*)
+  | (e1, (Forall (v1, t1), t2)::e2) -> unification (e1, ((barendregtisation (Forall (v1, t1))), t2)::e2) but
+  | (e1, (t1, Forall (v2, t2))::e2) -> unification (e1, (t2, (barendregtisation (Forall (v2, t2))))::e2) but
     (* equation avec but : on passe *)
   | (e1, (Var v1, t2)::e2) when v1 = but ->  unification ((Var v1, t2)::e1, e2) but
     (* deux variables : remplacer l'une par l'autre *)
@@ -147,21 +180,13 @@ let rec unification (e : equa_zip) (but : string) : ptype =
   | (e1, (TRef t1, TRef t2)::e2) -> unification (e1, (t1, t2)::e2) but
   | (e1, (TRef t1, t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t2)))
   | (e1, (t1, TRef t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t1)))
-  (*Les deux sont des forall,  *)
-  | (e1, (Forall (v1, t1), Forall (v2, t2))::e2) -> unification (e1, (barendregtisation (Forall (v1, t1)), barendregtisation (Forall (v2, t2)))::e2) but
-  (*un des deux est un forall -> 1) renomme variables liés 2) ouvre*)
-  | (e1, (Forall (v1, t1), t2)::e2) -> unification (e1, ((barendregtisation (Forall (v1, t1))), t2)::e2) but
-  | (e1, (t1, Forall (v2, t2))::e2) -> unification (e1, (t2, (barendregtisation (Forall (v2, t2))))::e2) but
+  
+
+(*variables libres*)
 
 
 (*retourne les variables libres d'un type*)
-let rec generalise (t:ptype) (env:env) : ptype =
-  match t with
-  | Var v when env_contains env v -> Forall (v::[], t)
-  | Arr (t1, t2) -> Arr (generalise t1 env, generalise t2 env)
-  | PList t -> PList (generalise t env)
-  | TRef t -> TRef (generalise t env)
-  | _ -> t
+let generalise (t:ptype) (env:env) : ptype = Forall (recup_varibles_libres t env, t)
 
 (*fonction de typage*)
 let rec typage (t:pterm) : ptype  = 
@@ -208,8 +233,9 @@ let rec typage (t:pterm) : ptype  =
         | Let (x, e1, e2) -> (
           try (
             let type_of_e1 : ptype = typageAux e1 e in
-            let type_of_e1_gen : ptype = generalise type_of_e1 e in 
-            genere_equa e2 ty ((x, type_of_e1_gen)::e)
+            let type_of_e1_gen : ptype = type_of_e1 (*generalise type_of_e1 e*) in 
+            let res = genere_equa e2 ty ((x, type_of_e1_gen)::e) in
+            print_tenv ((x, type_of_e1_gen)::e); res
             ) with Echec_unif bla -> raise (Echec_unif bla))
         | Punit -> [(ty, TPunit)]
         | Ref p -> let p_type = Var (nouvelle_var ()) in (ty, TRef p_type) :: (genere_equa p p_type e)
@@ -228,7 +254,7 @@ let rec typage (t:pterm) : ptype  =
             let equa_e = genere_equa p nv e in
             (ty, nv) :: equa_e
         | PL l -> match l with
-            Empty -> [(ty, PList (Var (nouvelle_var ())))]
+            Empty -> [ty, generalise (PList (Var (nouvelle_var ()))) e]
             | Cons (head, tail) -> let nv = Var (nouvelle_var ()) in 
               let equa_head = genere_equa head nv e in
               let equa_tail = genere_equa (PL tail) (PList nv) e in
