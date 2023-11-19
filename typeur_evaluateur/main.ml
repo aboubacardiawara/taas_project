@@ -88,6 +88,8 @@ let test_eval () =
  announce_test_case (print_term example_expression) eval_example_expression expected_eval_example_expression;
  announce_test_case (print_term example_expression2) eval_example_expression2 expected_eval_example_expression2;
  assert_equal_pterm eval_example_expression2 expected_eval_example_expression2;
+ announce_test_case (print_term example_expression3) eval_example_expression3 expected_eval_example_expression3;
+ assert_equal_pterm eval_example_expression3 expected_eval_example_expression3;
  print_endline "fin test evaluation"
 
 let annouce_infer_test_case (expected_type:string) (p:pterm) : unit =
@@ -131,10 +133,12 @@ let test_type () =
 
   annouce_infer_test_case example_brahim_et example_brahim;
 
-  annouce_infer_test_case identite_dans_let_et identite_dans_let
+  annouce_infer_test_case identite_dans_let_et identite_dans_let;
+
+  annouce_infer_test_case example_expression_et example_expression;
+  annouce_infer_test_case example_expression2_et example_expression2;
+  annouce_infer_test_case example_expression3_et example_expression3;
+  print_endline "fin test inference"
 
 
-let playground () =
-  print_endline (print_term ex_sequence1)
-
-let _ = test_eval ()
+let _ = test_type (); test_eval ()

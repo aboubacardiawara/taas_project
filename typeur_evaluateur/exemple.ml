@@ -245,6 +245,30 @@ let example_expression2_et : string = "Nat"
 let eval_example_expression2 : pterm = eval example_expression2
 let expected_eval_example_expression2 : pterm = N 510
 
+let example_expression3 = Sequence [
+  Let ("x", N 500,
+    Let ("y", Ref (N 20),
+      Sequence [
+        Add (Var "x", Bang (Var "y"));
+        Sequence [
+          Let ("z", N 10,
+              Let ("x", N 10,
+                Sequence [
+                  Mut (Var "y", Var "x");
+                ]
+              );
+          )
+        ];
+        Add (Var "x", Bang (Var "y"));
+        Mut (Var "y", N 100);
+      ]
+    )
+  )
+]
+let example_expression3_et : string = "unit"
+let eval_example_expression3 : pterm = eval example_expression3
+let expected_eval_example_expression3 : pterm = Punit
+
 (*Exemple de fonction*)
 (*let f = fun x -> x + 1 in f 2*)
 (*fun a x -> {
