@@ -86,8 +86,8 @@ let test_eval () =
  announce_test_case "let x = ref 10 in {x := !x + 1; !x}" eval_ex_sequence2 expected_ex_sequence2;
  assert_equal_pterm eval_ex_sequence2 expected_ex_sequence2;
  announce_test_case (print_term example_expression) eval_example_expression expected_eval_example_expression;
- print_endline (print_term eval_example_expression);
- print_endline (print_term eval_example_expression2);
+ announce_test_case (print_term example_expression2) eval_example_expression2 expected_eval_example_expression2;
+ assert_equal_pterm eval_example_expression2 expected_eval_example_expression2;
  print_endline "fin test evaluation"
 
 let annouce_infer_test_case (expected_type:string) (p:pterm) : unit =
@@ -137,4 +137,4 @@ let test_type () =
 let playground () =
   print_endline (print_term ex_sequence1)
 
-let _ = test_type ()
+let _ = test_eval ()

@@ -175,11 +175,11 @@ let rec unification (e : equa_zip) (but : string) : ptype =
   | (e1, (TPunit, TPunit)::e2) -> unification (e1, e2) but
     (*type unit à gauche pas à droite*)
   | (e1, (TPunit, t2)::e2) -> raise (Echec_unif ("type unit non-unifiable avec "^(print_type t2)))
-    (*type unit à droite pas à gauche*)
+  (*type unit à droite pas à gauche*)
   | (e1, (t1, TPunit)::e2) -> raise (Echec_unif ("type unit non-unifiable avec "^(print_type t1)))
   | (e1, (TRef t1, TRef t2)::e2) -> unification (e1, (t1, t2)::e2) but
-  | (e1, (TRef t1, t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t2)))
   | (e1, (t1, TRef t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t1)))
+  | (e1, (TRef t1, t2)::e2) -> raise (Echec_unif ("type ref non-unifiable avec "^(print_type t2)))
   
 
 (*variables libres*)
@@ -253,12 +253,20 @@ let rec typage (t:pterm) : ptype  =
         | Tail p -> let nv = PList (Var (nouvelle_var ())) in
             let equa_e = genere_equa p nv e in
             (ty, nv) :: equa_e
-        | PL l -> match l with
+        | PL l -> (match l with
             Empty -> [ty, generalise (PList (Var (nouvelle_var ()))) e]
             | Cons (head, tail) -> let nv = Var (nouvelle_var ()) in 
               let equa_head = genere_equa head nv e in
               let equa_tail = genere_equa (PL tail) (PList nv) e in
-              (ty, PList nv) :: equa_head @ equa_tail
+              (ty, PList nv) :: equa_head @ equa_tail)
+        (*Le type d'une sequence est le type de la derniere instruction*)
+        | Sequence l -> match l with
+            [] -> (ty, TPunit)::[]
+            | [last] -> genere_equa last ty e
+            | head::tail -> try (
+              let _ : ptype = typageAux head e in
+              genere_equa (Sequence tail) ty e
+            ) with Echec_unif bla -> raise (Echec_unif bla)
     
 (*utilise la fonction typage*)
 let inference2 (p:pterm) : string = 

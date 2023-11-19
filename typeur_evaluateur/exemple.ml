@@ -217,8 +217,10 @@ let example_expression : pterm =
 
 
 let eval_example_expression : pterm = eval example_expression
-
 let expected_eval_example_expression : pterm = N 30
+let example_expression_et : string = "Nat"
+
+(*exemple plus complexe*)
 
 let example_expression2 = Sequence [
   Let ("x", N 500,
@@ -239,8 +241,12 @@ let example_expression2 = Sequence [
     )
   )
 ]
-
+let example_expression2_et : string = "Nat"
 let eval_example_expression2 : pterm = eval example_expression2
+let expected_eval_example_expression2 : pterm = N 510
+
+(*Exemple de fonction*)
+(*let f = fun x -> x + 1 in f 2*)
 (*fun a x -> {
   let a = fun c -> let y = x in y
   in ((a 1) x)   
