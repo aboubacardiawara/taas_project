@@ -1,0 +1,216 @@
+INFERENCE DE TYPE
+(let x = 1 in (x + 3))
+  > expected type: nat 
+  > actual type:  ***TYPABLE*** avec le type Nat
+
+
+(let x = 4 in (λx -> x))
+  > expected type: a' -> a'
+  > actual type:  ***TYPABLE*** avec le type (T77 -> T77)
+
+
+[1; 3; 4]
+  > expected type: [nat]
+  > actual type:  ***TYPABLE*** avec le type Nat PList
+
+
+[]
+  > expected type: [a']
+  > actual type:  ***TYPABLE*** avec le type T82 PList
+
+
+[1; 3; [2]]
+  > expected type: !! Pas typable
+  > actual type:  ***PAS TYPABLE*** : type entier non-unifiable avec T86 PList
+
+
+(ifZero 1 then 10 else 2)
+  > expected type: Nat
+  > actual type:  ***TYPABLE*** avec le type Nat
+
+
+(ifList [1] then 1 else 2)
+  > expected type: Nat
+  > actual type:  ***TYPABLE*** avec le type Nat
+
+
+(λx -> (let y = x in (x y)))
+  > expected type: !! Pas typable
+  > actual type:  ***PAS TYPABLE*** : occurence de T97 dans (T97 -> T96)
+
+
+(λx -> (let y = x in (y x)))
+  > expected type: !! Pas typable
+  > actual type:  ***PAS TYPABLE*** : occurence de T102 dans (T102 -> T101)
+
+
+(let x = (ref 2) in (x := 3))
+  > expected type: Unit
+  > actual type:  ***TYPABLE*** avec le type unit
+
+
+(λx -> (x := (!x + 1)))
+  > expected type: (Nat ref) -> Unit
+  > actual type:  ***TYPABLE*** avec le type (ref Nat -> unit)
+
+
+(let x = (ref 3) in x)
+  > expected type: Nat ref
+  > actual type:  ***TYPABLE*** avec le type ref Nat
+
+
+(let f = (λx -> (let y = (ref (!x + 3)) in y)) in (f (ref 2)))
+  > expected type: ref Nat
+  > actual type:  ***TYPABLE*** avec le type ref Nat
+
+
+(let f = (λx -> (!x + 3)) in (f (ref 2)))
+  > expected type: Nat
+  > actual type:  ***TYPABLE*** avec le type Nat
+
+
+(!(ref 4) + 2)
+  > expected type: Nat
+  > actual type:  ***TYPABLE*** avec le type Nat
+
+
+((λx -> (!x + 2)) (ref 4))
+  > expected type: Nat
+  > actual type:  ***TYPABLE*** avec le type Nat
+
+
+(λx -> (let y = (x + 1) in (x y)))
+  > expected type: !! Pas typable
+  > actual type:  ***TYPABLE*** avec le type ((Nat -> T141) -> T141)
+
+
+(λx -> (let a = (λc -> (let y = x in y)) in ((a 1) x)))
+  > expected type: Pas typable
+  > actual type:  ***TYPABLE*** avec le type (T153 -> T148)
+
+
+(let f = (λx -> x) in f)
+  > expected type: ∀a.a -> a
+  > actual type:  ***TYPABLE*** avec le type (T159 -> T159)
+
+
+{(let x = 10 in {(let y = (ref 19) in {(y := (!y + 1)); (x + !y)})})}
+  > expected type: Nat
+  > actual type:  ***TYPABLE*** avec le type Nat
+
+
+{(let x = 500 in (let y = (ref 20) in {(x + !y); {(let z = 10 in (let x = 10 in {(y := x)}))}; (x + !y)}))}
+  > expected type: Nat
+  > actual type:  ***TYPABLE*** avec le type Nat
+
+
+{(let x = 500 in (let y = (ref 20) in {(x + !y); {(let z = 10 in (let x = 10 in {(y := x)}))}; (x + !y); (y := 100)}))}
+  > expected type: unit
+  > actual type:  ***TYPABLE*** avec le type unit
+
+
+fin test inference
+> Running tests
+========= Substitution ========
+- testcase: substitution dans l'identite
+  actual: (λx -> (x x))  expected: (λm -> (m m))
+
+- testcase: substitution dans une abstraction x=2 dans (λx.x+x)
+  actual: (2 + 2)  expected: (2 + 2)
+
+========= Beta reduction =======
+- testcase: beta reduction (λm.m)(λx.xx)
+  actual: (λx -> (x x))  expected: (λx -> (x x))
+
+(λx -> (x x))
+- testcase: beta reduction d'une application (λx.x+1) 2
+  actual: (2 + 1)  expected: (2 + 1)
+
+- testcase: fonction appliquée à une fonction (λx.x (λy.y))  (λz.z)
+  actual: (λw -> w)  expected: (λw -> w)
+
+- testcase: test de Raphaël
+  actual: (λx -> ((λy -> y) (λz -> z)))  expected: (λx -> ((λy -> y) (λz -> z)))
+
+- testcase: terme contenant une variable libre
+  actual: (z + y)  expected: (z + y)
+
+========= Evaluation =======
+- testcase: evaluation d'une addition (1+2)
+  actual: 3  expected: 3
+
+- testcase: evaluation d'une addition (1-2)
+  actual: -1  expected: -1
+
+- testcase: evaluation d'une multiplication (2*3)
+  actual: 6  expected: 6
+
+- testcase: evaluation d'une liste [2+3; 0*1]
+  actual: [5; 0]  expected: [5; 0]
+
+========= evaluation sur les conditions =======
+- testcase: 0 est comme false
+  actual: 2  expected: 2
+
+- testcase: 1 est comme true
+  actual: 1  expected: 1
+
+- testcase: liste vide est comme false
+  actual: 2  expected: 2
+
+- testcase: liste non vide est comme true
+  actual: 1  expected: 1
+
+- testcase: Tête d'une liste
+  actual: 1  expected: 1
+
+- testcase: Queue d'une liste
+  actual: []  expected: []
+
+- testcase: let x = 1 in x+3
+  actual: 4  expected: 4
+
+- testcase: let x=2 in (λy -> y * x) 10
+  actual: 20  expected: 20
+
+- testcase: let x= (f x -> x) in (f y -> x)
+  actual: (λT46 -> (λT47 -> T47))  expected: (λy -> (λx -> x))
+
+========= evaluation sur les references =======
+- testcase: let x = ref 1 in !x + 3
+  actual: 5  expected: 5
+
+- testcase: let x = ref 0 in x := !x + 1 s'evalue en punit
+  actual: unit  expected: unit
+
+- testcase: let f = (func x -> x*x) in let x = ref 3 in f(!x+1) + 4
+  actual: 20  expected: 20
+
+- testcase: let x=ref 2 in let y = ref (!x+1) in !y*2
+  actual: 6  expected: 6
+
+- testcase: let f = (func x -> let y = ref (!x) in !x*!y) in let x = ref 3 in f(!x+1) + 5
+  actual: 21  expected: 21
+
+- testcase: (λx -> (!x + 3)) (ref 2)
+  actual: 5  expected: 5
+
+- testcase: let f(x) = (let y := !x + 3 in !y) in let f(ref 2)
+  actual: 5  expected: 5
+
+- testcase: {N 1; N 2}
+  actual: 2  expected: 2
+
+- testcase: let x = ref 10 in {x := !x + 1; !x}
+  actual: 11  expected: 11
+
+- testcase: {(let x = 10 in {(let y = (ref 19) in {(y := (!y + 1)); (x + !y)})})}
+  actual: 30  expected: 30
+
+- testcase: {(let x = 500 in (let y = (ref 20) in {(x + !y); {(let z = 10 in (let x = 10 in {(y := x)}))}; (x + !y)}))}
+  actual: 510  expected: 510
+
+- testcase: {(let x = 500 in (let y = (ref 20) in {(x + !y); {(let z = 10 in (let x = 10 in {(y := x)}))}; (x + !y); (y := 100)}))}
+  actual: unit  expected: unit
+
+fin test evaluation

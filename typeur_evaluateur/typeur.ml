@@ -235,7 +235,7 @@ let rec typage (t:pterm) : ptype  =
             let type_of_e1 : ptype = typageAux e1 e in
             let type_of_e1_gen : ptype = type_of_e1 (*generalise type_of_e1 e*) in 
             let res = genere_equa e2 ty ((x, type_of_e1_gen)::e) in
-            print_tenv ((x, type_of_e1_gen)::e); res
+            res
             ) with Echec_unif bla -> raise (Echec_unif bla))
         | Punit -> [(ty, TPunit)]
         | Ref p -> let p_type = Var (nouvelle_var ()) in (ty, TRef p_type) :: (genere_equa p p_type e)
@@ -254,7 +254,7 @@ let rec typage (t:pterm) : ptype  =
             let equa_e = genere_equa p nv e in
             (ty, nv) :: equa_e
         | PL l -> (match l with
-            Empty -> [ty, generalise (PList (Var (nouvelle_var ()))) e]
+            Empty -> [ty, PList (Var (nouvelle_var ()))]
             | Cons (head, tail) -> let nv = Var (nouvelle_var ()) in 
               let equa_head = genere_equa head nv e in
               let equa_tail = genere_equa (PL tail) (PList nv) e in
